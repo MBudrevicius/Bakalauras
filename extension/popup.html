@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Security &amp; AI Checker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Privacy disclaimer overlay -->
+  <div id="disclaimer-overlay" class="disclaimer-overlay hidden">
+    <div class="disclaimer-content">
+      <h2>Privacy & Data Disclaimer</h2>
+      <p>This extension sends the current page URL and/or page text content to a local analysis server for security and AI detection checks.</p>
+      <ul>
+        <li>URLs are sent to check for HTTPS, SSL certificates, domain age, phishing indicators, and Google Safe Browsing status.</li>
+        <li>Page text may be extracted and sent for AI-generated content analysis.</li>
+        <li>All processing happens on your local machine — no data is shared with third parties (except Google Safe Browsing API lookups).</li>
+      </ul>
+      <label class="disclaimer-remember">
+        <input type="checkbox" id="disclaimer-remember-chk">
+        <span>Remember my choice</span>
+      </label>
+      <button id="disclaimer-accept-btn" class="btn-primary">I Understand & Accept</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header-row">
+      <h1>Web Checker</h1>
+      <button id="popout-btn" class="popout-btn" title="Open in separate window">⧉</button>
+    </div>
+    <div id="url-display" class="url-bar">—</div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab active" data-tab="security">Security</button>
+      <button class="tab" data-tab="ai">AI Detection</button>
+      <button class="tab" data-tab="info">Info</button>
+    </div>
+
+    <!-- ═══ Security tab ═══ -->
+    <div id="tab-security" class="tab-content active">
+      <button id="run-checks-btn" class="btn-primary">Run Security Checks</button>
+
+      <div id="score-section" class="score-section hidden">
+        <div class="score-circle" id="score-circle">
+          <span id="score-value">—</span>
+        </div>
+        <span class="score-label">Overall Score</span>
+      </div>
+
+      <ul id="results-list" class="results-list"></ul>
+      <div id="security-status" class="status"></div>
+    </div>
+
+    <!-- ═══ AI Detection tab ═══ -->
+    <div id="tab-ai" class="tab-content">
+      <div class="ai-actions">
+        <button id="ai-full-page-btn" class="btn-primary">Scan Full Page</button>
+        <button id="ai-selection-btn" class="btn-secondary">Scan Selected Text</button>
+      </div>
+
+      <div class="ai-option">
+        <label class="toggle-label">
+          <input type="checkbox" id="ai-highlight-toggle">
+          <span>Highlight AI content on page</span>
+        </label>
+      </div>
+
+      <div id="ai-score-section" class="score-section hidden">
+        <div class="score-circle" id="ai-score-circle">
+          <span id="ai-score-value">—</span>
+        </div>
+        <span class="score-label">AI Probability</span>
+      </div>
+
+      <ul id="ai-results-list" class="results-list"></ul>
+      <div id="ai-status" class="status"></div>
+    </div>
+
+    <!-- ═══ Info / Cross-check tab ═══ -->
+    <div id="tab-info" class="tab-content">
+      <!-- Stored scores for this page -->
+      <div id="stored-scores-section" class="stored-scores hidden">
+        <h3 class="section-heading">Page Scores</h3>
+        <div class="score-row">
+          <div class="mini-score-block">
+            <span class="mini-label">Security</span>
+            <span id="stored-sec-score" class="mini-value">—</span>
+          </div>
+          <div class="mini-score-block">
+            <span class="mini-label">AI Prob.</span>
+            <span id="stored-ai-score" class="mini-value">—</span>
+          </div>
+        </div>
+        <div id="adjusted-scores" class="adjusted-row hidden">
+          <span class="adjusted-label">Adjusted (with related-page influence):</span>
+          <span id="adj-sec" class="adjusted-value"></span>
+          <span class="adjusted-sep">|</span>
+          <span id="adj-ai" class="adjusted-value"></span>
+        </div>
+        <div id="score-meta" class="score-meta"></div>
+      </div>
+
+      <button id="cross-check-btn" class="btn-primary">Cross-check Information</button>
+
+      <div id="cross-topic" class="cross-topic hidden"></div>
+
+      <ul id="related-list" class="results-list"></ul>
+      <div id="info-status" class="status"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
