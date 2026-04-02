@@ -11,4 +11,4 @@ node_modules/
 .vs/
 
 # User-specific files
-appsettings.json
+**/appsettings.json
