@@ -1,25 +1,20 @@
-using System.Collections.Concurrent;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using server.Data;
 using server.Models;
 
 namespace server.Services;
 
 /// <summary>
-/// Lightweight persistent store for page scores. Uses a JSON file.
-/// Registered as a singleton so all services share the same in-memory cache.
+/// Persistent store for page scores using EF Core with NeonDB (PostgreSQL).
+/// Supports both anonymous and authenticated user tracking.
 /// </summary>
 public class PageScoreStore
 {
-    private readonly string _filePath;
-    private readonly ConcurrentDictionary<string, PageScore> _scores;
-    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly AppDbContext _context;
 
-    public PageScoreStore(IWebHostEnvironment env)
+    public PageScoreStore(AppDbContext context)
     {
-        var dataDir = Path.Combine(env.ContentRootPath, "Data");
-        Directory.CreateDirectory(dataDir);
-        _filePath = Path.Combine(dataDir, "page_scores.json");
-        _scores = Load();
+        _context = context;
     }
 
     /// <summary>Normalise URL for use as dictionary key (lowercase, trim trailing slash).</summary>
@@ -32,40 +27,54 @@ public class PageScoreStore
         return url.ToLowerInvariant();
     }
 
-    public PageScore? Get(string url)
+    public async Task<PageScore?> GetAsync(string url, int? userId = null)
     {
-        _scores.TryGetValue(NormalizeUrl(url), out var score);
-        return score;
+        var normalizedUrl = NormalizeUrl(url);
+        return await _context.PageScores
+            .FirstOrDefaultAsync(p => p.Url == normalizedUrl && (userId == null || p.UserId == userId));
     }
 
-    public List<PageScore> GetAll() => _scores.Values.ToList();
+    public async Task<List<PageScore>> GetAllAsync(int? userId = null)
+    {
+        var query = _context.PageScores.AsQueryable();
+        if (userId.HasValue)
+            query = query.Where(p => p.UserId == userId);
+        return await query.ToListAsync();
+    }
 
     /// <summary>Save or update a page score. Merges with existing data.</summary>
-    public async Task SaveAsync(string url, int? securityScore, int? aiScore)
+    public async Task SaveAsync(string url, int? securityScore, int? aiScore, int? userId = null)
     {
-        var key = NormalizeUrl(url);
+        var normalizedUrl = NormalizeUrl(url);
         var domain = Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Host : "";
 
-        _scores.AddOrUpdate(key,
-            _ => new PageScore
+        var existingScore = await _context.PageScores
+            .FirstOrDefaultAsync(p => p.Url == normalizedUrl && p.UserId == userId);
+
+        if (existingScore == null)
+        {
+            var newScore = new PageScore
             {
                 Url = url,
                 Domain = domain,
                 SecurityScore = securityScore ?? 0,
                 AiScore = aiScore ?? 0,
                 LastChecked = DateTime.UtcNow,
-                CheckCount = 1
-            },
-            (_, existing) =>
-            {
-                if (securityScore.HasValue) existing.SecurityScore = securityScore.Value;
-                if (aiScore.HasValue) existing.AiScore = aiScore.Value;
-                existing.LastChecked = DateTime.UtcNow;
-                existing.CheckCount++;
-                return existing;
-            });
+                CheckCount = 1,
+                UserId = userId
+            };
 
-        await PersistAsync();
+            _context.PageScores.Add(newScore);
+        }
+        else
+        {
+            if (securityScore.HasValue) existingScore.SecurityScore = securityScore.Value;
+            if (aiScore.HasValue) existingScore.AiScore = aiScore.Value;
+            existingScore.LastChecked = DateTime.UtcNow;
+            existingScore.CheckCount++;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     /// <summary>
@@ -79,41 +88,5 @@ public class PageScoreStore
 
         var relatedAvg = (double)related.Sum() / related.Count;
         return (int)Math.Round(ownScore * 0.9 + relatedAvg * 0.1);
-    }
-
-    private ConcurrentDictionary<string, PageScore> Load()
-    {
-        if (!File.Exists(_filePath))
-            return new ConcurrentDictionary<string, PageScore>();
-
-        try
-        {
-            var json = File.ReadAllText(_filePath);
-            var list = JsonSerializer.Deserialize<List<PageScore>>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            var dict = new ConcurrentDictionary<string, PageScore>();
-            foreach (var s in list ?? [])
-                dict[NormalizeUrl(s.Url)] = s;
-            return dict;
-        }
-        catch
-        {
-            return new ConcurrentDictionary<string, PageScore>();
-        }
-    }
-
-    private async Task PersistAsync()
-    {
-        await _writeLock.WaitAsync();
-        try
-        {
-            var json = JsonSerializer.Serialize(_scores.Values.ToList(),
-                new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_filePath, json);
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
     }
 }

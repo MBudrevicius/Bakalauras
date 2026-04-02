@@ -19,12 +19,12 @@ public static class InfoEndpoints
             return Results.Ok(response);
         });
 
-        app.MapGet("/api/page-score", (string url, PageScoreStore store) =>
+        app.MapGet("/api/page-score", async (string url, PageScoreStore store) =>
         {
             if (string.IsNullOrWhiteSpace(url))
                 return Results.BadRequest(new { error = "URL is required." });
 
-            var score = store.Get(url);
+            var score = await store.GetAsync(url);
             if (score == null)
                 return Results.Ok(new { found = false });
 

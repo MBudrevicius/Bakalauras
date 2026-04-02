@@ -14,7 +14,7 @@ public class AiCheckService
         _scoreStore = scoreStore;
     }
 
-    public async Task<AiCheckResponse> RunAllAsync(AiCheckRequest request)
+    public async Task<AiCheckResponse> RunAllAsync(AiCheckRequest request, int? userId = null)
     {
         var text = request.Text;
 
@@ -48,7 +48,7 @@ public class AiCheckService
 
         // Persist the AI score if we have a URL
         if (!string.IsNullOrWhiteSpace(request.Url))
-            await _scoreStore.SaveAsync(request.Url, securityScore: null, aiScore: response.OverallAiScore);
+            await _scoreStore.SaveAsync(request.Url, securityScore: null, aiScore: response.OverallAiScore, userId: userId);
 
         return response;
     }

@@ -13,7 +13,7 @@ public class SecurityCheckService
         _scoreStore = scoreStore;
     }
 
-    public async Task<SecurityCheckResponse> RunAllAsync(string url)
+    public async Task<SecurityCheckResponse> RunAllAsync(string url, int? userId = null)
     {
         var tasks = _checks.Select(c => c.RunAsync(url));
         var results = await Task.WhenAll(tasks);
@@ -25,7 +25,7 @@ public class SecurityCheckService
             OverallScore = CalculateScore(results)
         };
 
-        await _scoreStore.SaveAsync(url, securityScore: response.OverallScore, aiScore: null);
+        await _scoreStore.SaveAsync(url, securityScore: response.OverallScore, aiScore: null, userId: userId);
 
         return response;
     }

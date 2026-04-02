@@ -23,7 +23,7 @@ public class CrossCheckService
         _scoreStore = scoreStore;
     }
 
-    public async Task<CrossCheckResponse> CrossCheckAsync(string url)
+    public async Task<CrossCheckResponse> CrossCheckAsync(string url, int? userId = null)
     {
         var topic = await ExtractTopicAsync(url);
         var relatedPages = new List<RelatedPage>();
@@ -34,7 +34,7 @@ public class CrossCheckService
         }
 
         // Look up stored score for the requested page
-        var pageScore = _scoreStore.Get(url);
+        var pageScore = await _scoreStore.GetAsync(url, userId);
 
         // Calculate adjusted scores using related-page influence
         int? adjSec = null, adjAi = null;
@@ -155,7 +155,7 @@ public class CrossCheckService
                     continue;
 
                 // Look up our stored scores for this result
-                var stored = _scoreStore.Get(link);
+                var stored = await _scoreStore.GetAsync(link);
 
                 results.Add(new RelatedPage
                 {

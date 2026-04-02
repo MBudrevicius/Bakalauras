@@ -53,7 +53,7 @@ public partial class SuspiciousLinksCheck : ISecurityCheck
 
         foreach (var node in linkNodes)
         {
-            var href = node.GetAttributeValue("href", null) ?? node.GetAttributeValue("src", null);
+            var href = node.GetAttributeValue("href", "") ?? node.GetAttributeValue("src", "");
 
             if (string.IsNullOrWhiteSpace(href) || href.StartsWith('#') || href.StartsWith("javascript:"))
                 continue;

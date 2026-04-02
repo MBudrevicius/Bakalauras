@@ -9,4 +9,10 @@ public class AiCheckRequest
     /// If Text is provided, it takes priority.
     /// </summary>
     public string? Url { get; set; }
+
+    /// <summary>
+    /// Optional: if true, include Claude AI model check (costs 1 credit per check).
+    /// Default is false - only local checks are free.
+    /// </summary>
+    public bool UseClaudeAi { get; set; } = false;
 }
