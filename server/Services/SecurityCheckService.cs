@@ -21,11 +21,10 @@ public class SecurityCheckService
         var response = new SecurityCheckResponse
         {
             Url = url,
-            Results = results.ToList(),
+            Results = [.. results],
             OverallScore = CalculateScore(results)
         };
 
-        // Persist the security score
         await _scoreStore.SaveAsync(url, securityScore: response.OverallScore, aiScore: null);
 
         return response;
@@ -33,7 +32,10 @@ public class SecurityCheckService
 
     private static int CalculateScore(SecurityCheckResult[] results)
     {
-        if (results.Length == 0) return 100;
+        if (results.Length == 0)
+        {
+            return 100;
+        }
 
         int score = 0;
         foreach (var result in results)
@@ -43,7 +45,7 @@ public class SecurityCheckService
                 SecurityCheckSeverity.Pass => 100,
                 SecurityCheckSeverity.Info => 80,
                 SecurityCheckSeverity.Warning => 0,
-                _ => 0
+                _ => 100
             };
         }
 
