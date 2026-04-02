@@ -10,104 +10,98 @@ using server.Middleware;
 using server.Models;
 using server.Services;
 
-// Configure Serilog logging
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-    .AddEnvironmentVariables()
-    .Build();
-
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(configuration)
-    .CreateLogger();
-
 try
 {
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddEnvironmentVariables()
+        .Build();
+
     var builder = WebApplication.CreateBuilder(args);
 
-    // Use Serilog as the logging provider
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(configuration)
+        .CreateLogger();
     builder.Host.UseSerilog(Log.Logger);
 
     builder.Services.AddOpenApi();
     builder.Services.AddHttpClient();
 
-// Database context - NeonDB
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Authentication & Authorization
-var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
-{
-    throw new InvalidOperationException("JWT Secret is not configured or too short. Set Jwt:Secret in appsettings.json");
-}
-
-var key = Encoding.UTF8.GetBytes(jwtSecret);
-builder.Services.AddAuthentication(x =>
-{
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(x =>
-{
-    x.TokenValidationParameters = new TokenValidationParameters
+    var jwtSecret = builder.Configuration["Jwt:Secret"];
+    if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "YourAppName",
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "YourAppUsers",
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+        throw new InvalidOperationException("JWT Secret is not configured or too short. Set Jwt:Secret in appsettings.json");
+    }
 
-builder.Services.AddAuthorization();
-
-// Services
-builder.Services.AddSingleton<AuthService>();
-builder.Services.AddScoped<PageScoreStore>();
-
-// Phishing brand configuration from appsettings
-builder.Services.Configure<PhishingSettings>(builder.Configuration.GetSection("Phishing"));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PhishingSettings>>().Value);
-
-// Register security checks
-builder.Services.AddTransient<ISecurityCheck, HttpsCheck>();
-builder.Services.AddTransient<ISecurityCheck, DomainAgeCheck>();
-builder.Services.AddTransient<ISecurityCheck, SuspiciousLinksCheck>();
-builder.Services.AddTransient<ISecurityCheck, SslCertificateCheck>();
-builder.Services.AddTransient<ISecurityCheck, PhishingCheck>();
-builder.Services.AddTransient<ISecurityCheck, GoogleSafeBrowsingCheck>();
-builder.Services.AddTransient<SecurityCheckService>();
-
-// Register AI checks
-builder.Services.AddTransient<IAiCheck, VocabularyRichnessCheck>();
-builder.Services.AddTransient<IAiCheck, SentenceUniformityCheck>();
-builder.Services.AddTransient<IAiCheck, PerplexityEstimationCheck>();
-builder.Services.AddTransient<IAiCheck, PunctuationPatternsCheck>();
-builder.Services.AddTransient<IAiCheck, RepetitivePhrasingCheck>();
-builder.Services.AddTransient<IAiCheck, ParagraphStructureCheck>();
-builder.Services.AddTransient<IAiCheck, ClaudeAiModelCheck>();
-builder.Services.AddTransient<AiCheckService>();
-
-// Cross-check
-builder.Services.AddTransient<CrossCheckService>();
-
-// CORS for browser extension
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
+    var key = Encoding.UTF8.GetBytes(jwtSecret);
+    builder.Services.AddAuthentication(x =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(x =>
+    {
+        x.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "WebChecker",
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "WebCheckerUsers",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
     });
-});
 
-var app = builder.Build();
+    builder.Services.AddAuthorization();
+
+    // Services
+    builder.Services.AddSingleton<AuthService>();
+    builder.Services.AddScoped<PageScoreStore>();
+
+    // Phishing brand configuration from appsettings
+    builder.Services.Configure<PhishingSettings>(builder.Configuration.GetSection("Phishing"));
+    builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PhishingSettings>>().Value);
+
+    // Register security checks
+    builder.Services.AddTransient<ISecurityCheck, HttpsCheck>();
+    builder.Services.AddTransient<ISecurityCheck, DomainAgeCheck>();
+    builder.Services.AddTransient<ISecurityCheck, SuspiciousLinksCheck>();
+    builder.Services.AddTransient<ISecurityCheck, SslCertificateCheck>();
+    builder.Services.AddTransient<ISecurityCheck, PhishingCheck>();
+    builder.Services.AddTransient<ISecurityCheck, GoogleSafeBrowsingCheck>();
+    builder.Services.AddTransient<SecurityCheckService>();
+
+    // Register AI checks
+    builder.Services.AddTransient<IAiCheck, VocabularyRichnessCheck>();
+    builder.Services.AddTransient<IAiCheck, SentenceUniformityCheck>();
+    builder.Services.AddTransient<IAiCheck, PerplexityEstimationCheck>();
+    builder.Services.AddTransient<IAiCheck, PunctuationPatternsCheck>();
+    builder.Services.AddTransient<IAiCheck, RepetitivePhrasingCheck>();
+    builder.Services.AddTransient<IAiCheck, ParagraphStructureCheck>();
+    builder.Services.AddTransient<IAiCheck, ClaudeAiModelCheck>();
+    builder.Services.AddTransient<AiCheckService>();
+
+    // Cross-check
+    builder.Services.AddTransient<CrossCheckService>();
+
+    // CORS for browser extension
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
+    var app = builder.Build();
 
     Log.Information("Starting Web Checker application...");
 
@@ -129,7 +123,7 @@ var app = builder.Build();
         Log.Information("Swagger UI enabled for development");
     }
 
-    // Add request logging middleware (must be early in pipeline)
+    // Add request logging middleware
     app.UseRequestLogging();
 
     app.UseCors();
