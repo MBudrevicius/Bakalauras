@@ -9,3 +9,6 @@ node_modules/
 
 # Visual Studio
 .vs/
+
+# User-specific files
+appsettings.json
