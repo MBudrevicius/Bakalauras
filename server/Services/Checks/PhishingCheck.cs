@@ -6,6 +6,15 @@ namespace server.Services;
 
 public partial class PhishingCheck : ISecurityCheck
 {
+    private readonly string[] _targetedBrands;
+
+    public PhishingCheck(PhishingSettings phishingSettings)
+    {
+        _targetedBrands = phishingSettings.TargetedBrands.Length > 0
+            ? phishingSettings.TargetedBrands
+            : Array.Empty<string>();
+    }
+
     public SecurityCheckType Type => SecurityCheckType.Phishing;
 
     public Task<SecurityCheckResult> RunAsync(string url)
@@ -97,14 +106,14 @@ public partial class PhishingCheck : ISecurityCheck
     /// Finds the closest brand to the given domain using leet-speak normalization
     /// and Levenshtein distance. Returns (brand, distance) or (null, 0) if no match.
     /// </summary>
-    private static (string? Brand, int Distance) FindClosestBrand(string domain)
+    private (string? Brand, int Distance) FindClosestBrand(string domain)
     {
         var normalized = NormalizeLeetSpeak(domain);
 
         string? bestBrand = null;
         var bestDistance = int.MaxValue;
 
-        foreach (var brand in TargetedBrands.All)
+        foreach (var brand in _targetedBrands)
         {
             if (domain == brand)
                 return (null, 0);

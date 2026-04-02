@@ -1,10 +1,16 @@
+using Microsoft.Extensions.Options;
 using server.Endpoints;
+using server.Models;
 using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+
+// Phishing brand configuration from appsettings
+builder.Services.Configure<PhishingSettings>(builder.Configuration.GetSection("Phishing"));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PhishingSettings>>().Value);
 
 // Register security checks
 builder.Services.AddTransient<ISecurityCheck, HttpsCheck>();
