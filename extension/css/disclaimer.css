@@ -1,0 +1,187 @@
+.disclaimer-overlay {
+  position: relative;
+  background: #0b0e1a;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 14px 24px;
+}
+.disclaimer-overlay.hidden {
+  display: none !important;
+}
+.disclaimer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.disclaimer-content h2 {
+  font-size: 15px;
+  color: #e0e4f0;
+  text-align: center;
+  font-weight: 700;
+}
+.disclaimer-content p {
+  font-size: 12px;
+  color: #8890a8;
+  line-height: 1.5;
+}
+.disclaimer-content ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+}
+.disclaimer-content li {
+  font-size: 11px;
+  color: #6b7394;
+  line-height: 1.4;
+  padding-left: 14px;
+  position: relative;
+}
+.disclaimer-content li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #1a3a6e;
+}
+.disclaimer-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8890a8;
+  cursor: pointer;
+}
+.disclaimer-remember input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+.disclaimer-remember input[type="checkbox"]:checked {
+  background: #1a3a6e;
+  border-color: #1a3a6e;
+}
+.disclaimer-remember input[type="checkbox"]:checked::after {
+  content: "\2713";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #d0d8f0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Cost confirmation popup */
+.cost-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  animation: costFadeIn 0.15s ease;
+}
+.cost-overlay.hidden {
+  display: none !important;
+}
+@keyframes costFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.cost-popup {
+  background: #12162a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: costSlideIn 0.15s ease;
+}
+@keyframes costSlideIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.cost-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e0e4f0;
+  text-align: center;
+}
+.cost-desc {
+  font-size: 12px;
+  color: #8890a8;
+  line-height: 1.5;
+  text-align: center;
+}
+.cost-detail {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #a0a8c0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: center;
+  line-height: 1.5;
+}
+.cost-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7394;
+  cursor: pointer;
+  justify-content: center;
+}
+.cost-remember input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+.cost-remember input[type="checkbox"]:checked {
+  background: #1a3a6e;
+  border-color: #1a3a6e;
+}
+.cost-remember input[type="checkbox"]:checked::after {
+  content: "\2713";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #d0d8f0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.cost-buttons {
+  display: flex;
+  gap: 8px;
+}
+.cost-buttons .btn-primary,
+.cost-buttons .btn-secondary {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+}

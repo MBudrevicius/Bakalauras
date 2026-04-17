@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web Security &amp; AI Checker</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Secure Web</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/ai.css">
+  <link rel="stylesheet" href="css/info.css">
+  <link rel="stylesheet" href="css/disclaimer.css">
 </head>
 <body>
   <!-- Privacy disclaimer overlay -->
@@ -15,7 +18,8 @@
       <ul>
         <li>URLs are sent to check for HTTPS, SSL certificates, domain age, phishing indicators, and Google Safe Browsing status.</li>
         <li>Page text may be extracted and sent for AI-generated content analysis.</li>
-        <li>All processing happens on your local machine — no data is shared with third parties (except Google Safe Browsing API lookups).</li>
+        <li>If you provide a Claude API key, it is sent to the server only for the duration of the request and is never stored server-side.</li>
+        <li>All processing happens on your local machine - no data is shared with third parties (except Google Safe Browsing and Anthropic API lookups when a key is provided).</li>
       </ul>
       <label class="disclaimer-remember">
         <input type="checkbox" id="disclaimer-remember-chk">
@@ -27,10 +31,34 @@
 
   <div class="container">
     <div class="header-row">
-      <h1>Web Checker</h1>
-      <button id="popout-btn" class="popout-btn" title="Open in separate window">⧉</button>
+      <h1>Secure Web</h1>
+      <div class="header-actions">
+        <button id="history-btn" class="header-icon-btn" title="Check history">&#128337;</button>
+        <button id="popout-btn" class="popout-btn" title="Open in separate window">⧉</button>
+      </div>
     </div>
-    <div id="url-display" class="url-bar">—</div>
+    <div id="url-display" class="url-bar">-</div>
+
+    <!-- Page scores (always visible) -->
+    <div id="stored-scores-section" class="stored-scores hidden">
+      <div id="scores-loading" class="scores-loading">
+        <div class="spinner"></div>
+        <span>Loading scores…</span>
+      </div>
+      <div id="scores-content" class="hidden">
+        <div class="score-row">
+          <div class="mini-score-block">
+            <span class="mini-label">Security</span>
+            <span id="stored-sec-score" class="mini-value">-</span>
+          </div>
+          <div class="mini-score-block">
+            <span class="mini-label">AI Prob.</span>
+            <span id="stored-ai-score" class="mini-value">-</span>
+          </div>
+        </div>
+        <div id="score-meta" class="score-meta"></div>
+      </div>
+    </div>
 
     <!-- Tab bar -->
     <div class="tab-bar">
@@ -45,7 +73,7 @@
 
       <div id="score-section" class="score-section hidden">
         <div class="score-circle" id="score-circle">
-          <span id="score-value">—</span>
+          <span id="score-value">-</span>
         </div>
         <span class="score-label">Overall Score</span>
       </div>
@@ -56,6 +84,28 @@
 
     <!-- ═══ AI Detection tab ═══ -->
     <div id="tab-ai" class="tab-content">
+      <!-- API Key Settings -->
+      <div class="api-key-section">
+        <div class="api-key-header">
+          <label class="api-key-label" for="claude-api-key">Claude API Key (optional)</label>
+          <label class="use-ai-toggle" title="Enable/disable Claude AI">
+            <input type="checkbox" id="use-ai-chk">
+            <span>Use AI</span>
+          </label>
+        </div>
+        <div class="api-key-row">
+          <input type="password" id="claude-api-key" class="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+          <button id="api-key-toggle" class="api-key-toggle" title="Show/hide key">👁</button>
+        </div>
+        <label class="api-key-label" for="claude-model" style="margin-top:6px">Model</label>
+        <select id="claude-model" class="model-select">
+          <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
+          <option value="claude-sonnet-4-6">Sonnet 4.6</option>
+          <option value="claude-opus-4-7">Opus 4.7</option>
+        </select>
+        <span class="api-key-hint">Enables Claude AI analysis. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></span>
+      </div>
+
       <div class="ai-actions">
         <button id="ai-full-page-btn" class="btn-primary">Scan Full Page</button>
         <button id="ai-selection-btn" class="btn-secondary">Scan Selected Text</button>
@@ -70,7 +120,7 @@
 
       <div id="ai-score-section" class="score-section hidden">
         <div class="score-circle" id="ai-score-circle">
-          <span id="ai-score-value">—</span>
+          <span id="ai-score-value">-</span>
         </div>
         <span class="score-label">AI Probability</span>
       </div>
@@ -81,26 +131,25 @@
 
     <!-- ═══ Info / Cross-check tab ═══ -->
     <div id="tab-info" class="tab-content">
-      <!-- Stored scores for this page -->
-      <div id="stored-scores-section" class="stored-scores hidden">
-        <h3 class="section-heading">Page Scores</h3>
-        <div class="score-row">
-          <div class="mini-score-block">
-            <span class="mini-label">Security</span>
-            <span id="stored-sec-score" class="mini-value">—</span>
-          </div>
-          <div class="mini-score-block">
-            <span class="mini-label">AI Prob.</span>
-            <span id="stored-ai-score" class="mini-value">—</span>
-          </div>
+      <div class="api-key-section">
+        <div class="api-key-header">
+          <label class="api-key-label" for="info-claude-api-key">Claude API Key (optional)</label>
+          <label class="use-ai-toggle" title="Enable/disable Claude AI">
+            <input type="checkbox" id="info-use-ai-chk">
+            <span>Use AI</span>
+          </label>
         </div>
-        <div id="adjusted-scores" class="adjusted-row hidden">
-          <span class="adjusted-label">Adjusted (with related-page influence):</span>
-          <span id="adj-sec" class="adjusted-value"></span>
-          <span class="adjusted-sep">|</span>
-          <span id="adj-ai" class="adjusted-value"></span>
+        <div class="api-key-row">
+          <input type="password" id="info-claude-api-key" class="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+          <button id="info-api-key-toggle" class="api-key-toggle" title="Show/hide key">👁</button>
         </div>
-        <div id="score-meta" class="score-meta"></div>
+        <label class="api-key-label" for="info-claude-model" style="margin-top:6px">Model</label>
+        <select id="info-claude-model" class="model-select">
+          <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
+          <option value="claude-sonnet-4-6">Sonnet 4.6</option>
+          <option value="claude-opus-4-7">Opus 4.7</option>
+        </select>
+        <span class="api-key-hint">Enables Claude-powered topic extraction. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></span>
       </div>
 
       <button id="cross-check-btn" class="btn-primary">Cross-check Information</button>
@@ -112,6 +161,23 @@
     </div>
   </div>
 
-  <script src="popup.js"></script>
+  <!-- Cost confirmation popup -->
+  <div id="cost-confirm-overlay" class="cost-overlay hidden">
+    <div class="cost-popup">
+      <div class="cost-header">API Cost Estimate</div>
+      <p id="cost-desc" class="cost-desc"></p>
+      <div id="cost-detail" class="cost-detail"></div>
+      <label class="cost-remember">
+        <input type="checkbox" id="cost-skip-chk">
+        <span>Don't ask again</span>
+      </label>
+      <div class="cost-buttons">
+        <button id="cost-cancel-btn" class="btn-secondary">Cancel</button>
+        <button id="cost-accept-btn" class="btn-primary">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/popup.js"></script>
 </body>
 </html>

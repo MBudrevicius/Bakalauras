@@ -1,3 +1,4 @@
+using server.Checks.Security;
 using server.Models;
 
 namespace server.Services;
@@ -13,7 +14,7 @@ public class SecurityCheckService
         _scoreStore = scoreStore;
     }
 
-    public async Task<SecurityCheckResponse> RunAllAsync(string url, int? userId = null)
+    public async Task<SecurityCheckResponse> RunAllAsync(string url)
     {
         var tasks = _checks.Select(c => c.RunAsync(url));
         var results = await Task.WhenAll(tasks);
@@ -25,7 +26,7 @@ public class SecurityCheckService
             OverallScore = CalculateScore(results)
         };
 
-        await _scoreStore.SaveAsync(url, securityScore: response.OverallScore, aiScore: null, userId: userId);
+        await _scoreStore.SavePageScoreAsync(url, securityScore: response.OverallScore, aiScore: null);
 
         return response;
     }

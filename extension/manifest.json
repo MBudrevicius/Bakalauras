@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Web Security Checker",
+  "name": "Secure Web",
   "version": "0.1.0",
-  "description": "Run security and AI checks on any website.",
+  "description": "Run security and AI content checks on any website.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "action": {
     "default_popup": "popup.html",

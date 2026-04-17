@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Web - Check History</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/history.css">
+</head>
+<body class="popped-out">
+  <div class="container">
+    <div class="history-header">
+      <h1>Check History</h1>
+      <div class="history-actions">
+        <select id="filter-type">
+          <option value="all">All checks</option>
+          <option value="security">Security</option>
+          <option value="ai">AI Detection</option>
+        </select>
+        <button id="clear-btn" class="btn-danger">Clear</button>
+      </div>
+    </div>
+    <div id="history-list" class="history-list"></div>
+    <p id="history-empty" class="history-empty hidden">No checks recorded yet.</p>
+  </div>
+  <script type="module" src="js/history-page.js"></script>
+</body>
+</html>

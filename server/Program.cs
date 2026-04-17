@@ -1,14 +1,13 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using server.Checks.Ai;
+using server.Checks.Security;
 using server.Data;
 using server.Endpoints;
 using server.Middleware;
 using server.Models;
 using server.Services;
+using Microsoft.Extensions.Options;
 
 try
 {
@@ -31,37 +30,7 @@ try
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    var jwtSecret = builder.Configuration["Jwt:Secret"];
-    if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
-    {
-        throw new InvalidOperationException("JWT Secret is not configured or too short. Set Jwt:Secret in appsettings.json");
-    }
-
-    var key = Encoding.UTF8.GetBytes(jwtSecret);
-    builder.Services.AddAuthentication(x =>
-    {
-        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(x =>
-    {
-        x.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "WebChecker",
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "WebCheckerUsers",
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
-    builder.Services.AddAuthorization();
-
     // Services
-    builder.Services.AddSingleton<AuthService>();
     builder.Services.AddScoped<PageScoreStore>();
 
     // Phishing brand configuration from appsettings
@@ -75,6 +44,9 @@ try
     builder.Services.AddTransient<ISecurityCheck, SslCertificateCheck>();
     builder.Services.AddTransient<ISecurityCheck, PhishingCheck>();
     builder.Services.AddTransient<ISecurityCheck, GoogleSafeBrowsingCheck>();
+    builder.Services.AddTransient<ISecurityCheck, SecurityHeadersCheck>();
+    builder.Services.AddTransient<ISecurityCheck, RedirectChainCheck>();
+    builder.Services.AddTransient<ISecurityCheck, MixedContentCheck>();
     builder.Services.AddTransient<SecurityCheckService>();
 
     // Register AI checks
@@ -84,8 +56,15 @@ try
     builder.Services.AddTransient<IAiCheck, PunctuationPatternsCheck>();
     builder.Services.AddTransient<IAiCheck, RepetitivePhrasingCheck>();
     builder.Services.AddTransient<IAiCheck, ParagraphStructureCheck>();
+    builder.Services.AddTransient<IAiCheck, TransitionalPhraseCheck>();
+    builder.Services.AddTransient<IAiCheck, HedgingLanguageCheck>();
     builder.Services.AddTransient<IAiCheck, ClaudeAiModelCheck>();
     builder.Services.AddTransient<AiCheckService>();
+
+    // Clients
+    builder.Services.AddSingleton<server.Helpers.HtmlTextExtractor>();
+    builder.Services.AddTransient<server.Clients.AnthropicClient>();
+    builder.Services.AddTransient<server.Clients.BraveSearchClient>();
 
     // Cross-check
     builder.Services.AddTransient<CrossCheckService>();
@@ -103,7 +82,7 @@ try
 
     var app = builder.Build();
 
-    Log.Information("Starting Web Checker application...");
+    Log.Information("Starting Secure Web application...");
 
     // Apply database migrations automatically
     using (var scope = app.Services.CreateScope())
@@ -118,7 +97,7 @@ try
         app.MapOpenApi();
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/openapi/v1.json", "Web Checker API");
+            options.SwaggerEndpoint("/openapi/v1.json", "Secure Web API");
         });
         Log.Information("Swagger UI enabled for development");
     }
@@ -127,14 +106,10 @@ try
     app.UseRequestLogging();
 
     app.UseCors();
-    app.UseAuthentication();
-    app.UseAuthorization();
 
     app.MapSecurityEndpoints();
     app.MapAiEndpoints();
     app.MapInfoEndpoints();
-    app.MapUserEndpoints();
-    app.MapPaymentEndpoints();
 
     Log.Information("Application started successfully on {Date}", DateTime.UtcNow);
     app.Run();
