@@ -4,11 +4,11 @@ A Chrome browser extension that checks website security, detects AI-generated te
 
 ## Features
 
-- **Security Checks** — analyzes the current page for HTTPS, SSL certificate validity, domain age, redirect chains, mixed content, security headers, phishing indicators, suspicious links, and Google Safe Browsing status.
-- **AI Text Detection** — runs heuristic checks (vocabulary richness, sentence uniformity, repetitive phrasing, punctuation patterns, etc.) and optionally uses the Anthropic Claude API to estimate if page content or selected text was AI-generated. Can highlight individual paragraphs directly on the page.
-- **Information Cross-Check** — extracts the page topic (via Claude or page title) and searches for related sources using the Brave Search API so users can verify information.
-- **Check History** — stores past checks locally with filtering and search.
-- **Domain Score Tracking** — maintains running average scores per domain on the server.
+- **Security Checks** - analyzes the current page for HTTPS, SSL certificate validity, domain age, redirect chains, mixed content, security headers, phishing indicators, suspicious links, and Google Safe Browsing status.
+- **AI Text Detection** - runs heuristic checks (vocabulary richness, sentence uniformity, repetitive phrasing, punctuation patterns, etc.) and optionally uses the Anthropic Claude API to estimate if page content or selected text was AI-generated. Can highlight individual paragraphs directly on the page.
+- **Information Cross-Check** - extracts the page topic (via Claude or page title) and searches for related sources using the Brave Search API so users can verify information.
+- **Check History** - stores past checks locally with filtering and search.
+- **Domain Score Tracking** - maintains running average scores per domain on the server.
 
 ## Requirements
 
