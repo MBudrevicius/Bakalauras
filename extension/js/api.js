@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:5101";
+export const API_BASE = "http://clearsource.runasp.net";
 
 export async function fetchApi(path, options = {}) {
   const { headers: customHeaders, ...rest } = options;

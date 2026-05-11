@@ -172,3 +172,32 @@
   border-radius: 2px;
   transition: width 0.5s ease;
 }
+
+/* All models view */
+.result-item-expandable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.result-item-expandable:hover {
+  background: rgba(255,255,255,0.03);
+}
+.expand-hint {
+  font-size: 10px;
+  color: #6b7394;
+  margin-left: 4px;
+}
+.model-breakdown {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.model-breakdown.hidden {
+  display: none;
+}
+.model-breakdown-item {
+  padding-left: 8px;
+  border-left: 2px solid rgba(26,58,110,0.4);
+}

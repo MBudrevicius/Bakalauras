@@ -32,8 +32,8 @@ public class RedirectChainCheck : ISecurityCheck
 
         try
         {
-            using var handler = new HttpClientHandler { AllowAutoRedirect = false };
-            using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+            using var client = _httpClientFactory.CreateClient("NoRedirect");
+            client.Timeout = TimeSpan.FromSeconds(10);
 
             var warnings = new List<string>();
             var hops = new List<string> { url };

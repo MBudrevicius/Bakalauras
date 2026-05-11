@@ -13,6 +13,9 @@ const DETECT_AI_MAX_TOKENS = 60;
 const HIGHLIGHT_PROMPT_CHARS = 240;
 const EXTRACT_TOPIC_PROMPT_CHARS = 480;
 const EXTRACT_TOPIC_MAX_TOKENS = 50;
+const CREDIBILITY_PROMPT_CHARS = 600;
+const CREDIBILITY_SOURCE_CHARS = 2400;
+const CREDIBILITY_MAX_TOKENS = 500;
 const MAX_TEXT_LENGTH = 4000;
 const MAX_SEGMENT_CHARS = 300;
 const MAX_HIGHLIGHT_INPUT = 12000;
@@ -35,6 +38,10 @@ function calcCost(inputTokens, outputTokens, pricing) {
  * @param {object} [highlight] - { segmentCount, segmentChars[] } if highlight enabled
  */
 export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight = null) {
+  if (model === "all-models") {
+    return estimateAllModelsCost(textLength, highlight);
+  }
+
   const pricing = getModelPricing(model);
 
   let totalInput = 0;
@@ -63,6 +70,27 @@ export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight 
   return { inputTokens: totalInput, outputTokens: totalOutput, total, label: pricing.label, desc };
 }
 
+function estimateAllModelsCost(textLength, highlight) {
+  let combinedTotal = 0;
+  let combinedInput = 0;
+  let combinedOutput = 0;
+
+  for (const model of Object.keys(MODEL_PRICING)) {
+    const est = estimateAiScanCost(textLength, model, highlight);
+    combinedTotal += est.total;
+    combinedInput += est.inputTokens;
+    combinedOutput += est.outputTokens;
+  }
+
+  return {
+    inputTokens: combinedInput,
+    outputTokens: combinedOutput,
+    total: combinedTotal,
+    label: "All Models (Haiku + Sonnet + Opus)",
+    desc: "AI detection with all 3 models"
+  };
+}
+
 /**
  * Estimate cost for cross-check topic extraction (ExtractTopicAsync).
  * @param {number} textLength - raw page text length
@@ -70,10 +98,17 @@ export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight 
 export function estimateCrossCheckCost(textLength, model = DEFAULT_MODEL) {
   const pricing = getModelPricing(model);
   const sampleLen = Math.min(textLength, MAX_TEXT_LENGTH);
-  const inputTokens = tokensFromChars(EXTRACT_TOPIC_PROMPT_CHARS + sampleLen);
-  const outputTokens = EXTRACT_TOPIC_MAX_TOKENS;
+
+  // Topic extraction call
+  let inputTokens = tokensFromChars(EXTRACT_TOPIC_PROMPT_CHARS + sampleLen);
+  let outputTokens = EXTRACT_TOPIC_MAX_TOKENS;
+
+  // Credibility verification call (page text + source snippets)
+  inputTokens += tokensFromChars(CREDIBILITY_PROMPT_CHARS + sampleLen + CREDIBILITY_SOURCE_CHARS);
+  outputTokens += CREDIBILITY_MAX_TOKENS;
+
   const total = calcCost(inputTokens, outputTokens, pricing);
-  return { inputTokens, outputTokens, total, label: pricing.label, desc: "Topic extraction for cross-check" };
+  return { inputTokens, outputTokens, total, label: pricing.label, desc: "Cross-check with credibility analysis" };
 }
 
 export function formatCost(cost) {

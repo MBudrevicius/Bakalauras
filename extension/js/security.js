@@ -1,5 +1,5 @@
 import { fetchApi } from "./api.js";
-import { showStatus, esc, secScoreClass, severityMeta, severityMap, updateTopScores, fetchStoredScores } from "./helpers.js";
+import { showStatus, esc, secScoreClass, severityMeta, severityMap, updateTopScores, fetchStoredScores, showLoading, hideLoading, showErrorModal } from "./helpers.js";
 import { saveToHistory } from "./history.js";
 
 export function initSecurity(getWebTab, getCurrentUrl) {
@@ -23,7 +23,8 @@ export function initSecurity(getWebTab, getCurrentUrl) {
     runBtn.disabled = true;
     resultsList.innerHTML = "";
     scoreSection.classList.add("hidden");
-    showStatus(secStatus, "Running checks…");
+    showStatus(secStatus, "");
+    showLoading("Running security checks…");
 
     try {
       const data = await fetchApi("/api/security-checks", {
@@ -39,11 +40,12 @@ export function initSecurity(getWebTab, getCurrentUrl) {
         results: data.results.map(r => ({ title: r.title, severity: r.severity, description: r.description }))
       });
       // Refetch stored average from server (running average now updated)
-      await fetchStoredScores(currentUrl);
+      await fetchStoredScores(currentUrl, true);
       showStatus(secStatus, "");
     } catch (err) {
-      showStatus(secStatus, err.message || "Failed to reach server.", true);
+      showErrorModal(err.message || "Failed to reach server.");
     } finally {
+      hideLoading();
       runBtn.disabled = false;
     }
   });

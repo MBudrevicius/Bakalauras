@@ -160,3 +160,84 @@
 .related-scores .has-score {
   color: #a0a8c0;
 }
+
+/* Credibility section */
+.credibility-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.credibility-score-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.credibility-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  border: 3px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.credibility-high      { background: rgba(46,204,113,0.18); border-color: #2ecc71; color: #2ecc71; }
+.credibility-medium    { background: rgba(241,196,15,0.18); border-color: #f1c40f; color: #f1c40f; }
+.credibility-low       { background: rgba(230,126,34,0.18); border-color: #e67e22; color: #e67e22; }
+.credibility-very-low  { background: rgba(231,76,60,0.18);  border-color: #e74c3c; color: #e74c3c; }
+
+.credibility-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.credibility-label {
+  font-size: 10px;
+  color: #6b7394;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+.credibility-verdict {
+  font-size: 14px;
+  font-weight: 600;
+  color: #d0d8f0;
+}
+
+/* Claims list */
+.credibility-claims {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.credibility-claim {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 3px solid transparent;
+  background: rgba(255,255,255,0.02);
+}
+.claim-supported {
+  border-left-color: #2ecc71;
+  color: #a0c8a8;
+}
+.claim-contradicted {
+  border-left-color: #e74c3c;
+  color: #d4a0a0;
+}
+.claim-unverifiable {
+  border-left-color: #6b7394;
+  color: #8890a8;
+}

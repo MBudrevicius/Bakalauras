@@ -22,24 +22,24 @@ public static class AiEndpoints
             return Results.Ok(response);
         });
 
-        app.MapPost("/api/ai-checks/highlight", async (
-            HighlightRequest request,
+        app.MapPost("/api/ai-checks/all-models", async (
+            AiCheckRequest request,
             AiCheckService service,
             HttpContext httpContext) =>
         {
-            if (request.Segments == null || request.Segments.Length == 0)
+            if (string.IsNullOrWhiteSpace(request.Text) && string.IsNullOrWhiteSpace(request.Url))
             {
-                return Results.BadRequest(new { error = "Segments array is required." });
-            }
-            if (request.Segments.Length > 500)
-            {
-                return Results.BadRequest(new { error = "Too many segments (max 500)." });
+                return Results.BadRequest(new { error = "Either text or URL is required." });
             }
 
             var claudeApiKey = httpContext.Request.Headers["X-Claude-Api-Key"].FirstOrDefault();
-            var claudeModel = httpContext.Request.Headers["X-Claude-Model"].FirstOrDefault();
-            var scores = await service.AnalyzeSegmentsAsync(request.Segments, claudeApiKey, claudeModel);
-            return Results.Ok(new { scores });
+            if (string.IsNullOrWhiteSpace(claudeApiKey))
+            {
+                return Results.BadRequest(new { error = "API key is required for all-models check." });
+            }
+
+            var response = await service.RunAllModelsAsync(request, claudeApiKey);
+            return Results.Ok(response);
         });
     }
 }

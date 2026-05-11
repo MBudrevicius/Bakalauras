@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Web</title>
+  <title>ClearSource</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/ai.css">
   <link rel="stylesheet" href="css/info.css">
@@ -31,7 +31,7 @@
 
   <div class="container">
     <div class="header-row">
-      <h1>Secure Web</h1>
+      <h1>ClearSource</h1>
       <div class="header-actions">
         <button id="history-btn" class="header-icon-btn" title="Check history">&#128337;</button>
         <button id="popout-btn" class="popout-btn" title="Open in separate window">⧉</button>
@@ -52,6 +52,10 @@
             <span id="stored-sec-score" class="mini-value">-</span>
           </div>
           <div class="mini-score-block">
+            <span class="mini-label">Credibility</span>
+            <span id="stored-cred-score" class="mini-value">-</span>
+          </div>
+          <div class="mini-score-block">
             <span class="mini-label">AI Prob.</span>
             <span id="stored-ai-score" class="mini-value">-</span>
           </div>
@@ -62,9 +66,9 @@
 
     <!-- Tab bar -->
     <div class="tab-bar">
-      <button class="tab active" data-tab="security">Security</button>
-      <button class="tab" data-tab="ai">AI Detection</button>
-      <button class="tab" data-tab="info">Info</button>
+      <button class="tab active" data-tab="security">Webpage Security</button>
+      <button class="tab" data-tab="info">Information Credibility</button>
+      <button class="tab" data-tab="ai">AI Generated Content</button>
     </div>
 
     <!-- ═══ Security tab ═══ -->
@@ -102,6 +106,7 @@
           <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
           <option value="claude-sonnet-4-6">Sonnet 4.6</option>
           <option value="claude-opus-4-7">Opus 4.7</option>
+          <option value="all-models">All Models (combined)</option>
         </select>
         <span class="api-key-hint">Enables Claude AI analysis. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></span>
       </div>
@@ -109,13 +114,6 @@
       <div class="ai-actions">
         <button id="ai-full-page-btn" class="btn-primary">Scan Full Page</button>
         <button id="ai-selection-btn" class="btn-secondary">Scan Selected Text</button>
-      </div>
-
-      <div class="ai-option">
-        <label class="toggle-label">
-          <input type="checkbox" id="ai-highlight-toggle">
-          <span>Highlight AI content on page</span>
-        </label>
       </div>
 
       <div id="ai-score-section" class="score-section hidden">
@@ -148,15 +146,31 @@
           <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
           <option value="claude-sonnet-4-6">Sonnet 4.6</option>
           <option value="claude-opus-4-7">Opus 4.7</option>
+          <option value="all-models">All Models (combined)</option>
         </select>
         <span class="api-key-hint">Enables Claude-powered topic extraction. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a></span>
       </div>
 
-      <button id="cross-check-btn" class="btn-primary">Cross-check Information</button>
+      <div class="ai-actions">
+        <button id="cross-check-btn" class="btn-primary">Cross-check Page</button>
+        <button id="info-selection-btn" class="btn-secondary">Check Selected Text</button>
+      </div>
 
-      <div id="cross-topic" class="cross-topic hidden"></div>
+      <div class="ai-option">
+        <label class="toggle-label">
+          <input type="checkbox" id="info-highlight-toggle">
+          <span>Highlight low credibility paragraphs</span>
+        </label>
+      </div>
 
-      <ul id="related-list" class="results-list"></ul>
+      <div id="info-score-section" class="score-section hidden">
+        <div class="score-circle" id="info-score-circle">
+          <span id="info-score-value">-</span>
+        </div>
+        <span class="score-label">Credibility Score</span>
+      </div>
+
+      <ul id="info-results-list" class="results-list"></ul>
       <div id="info-status" class="status"></div>
     </div>
   </div>
@@ -175,6 +189,24 @@
         <button id="cost-cancel-btn" class="btn-secondary">Cancel</button>
         <button id="cost-accept-btn" class="btn-primary">Proceed</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Loading spinner overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner-ring"></div>
+    <span class="spinner-text" id="loading-text">Processing…</span>
+  </div>
+
+  <!-- Error modal -->
+  <div id="error-modal-overlay" class="error-modal-overlay hidden">
+    <div class="error-modal">
+      <div class="error-modal-header">
+        <div class="error-modal-icon">!</div>
+        <span class="error-modal-title">Error</span>
+      </div>
+      <p class="error-modal-message" id="error-modal-message"></p>
+      <button class="error-modal-btn" id="error-modal-close-btn">Close</button>
     </div>
   </div>
 

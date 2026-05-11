@@ -52,7 +52,7 @@ public class AiCheckService
 
         if (!string.IsNullOrWhiteSpace(request.Url))
         {
-            await _scoreStore.SavePageScoreAsync(request.Url, securityScore: null, aiScore: response.OverallAiScore);
+            await _scoreStore.SavePageScoreAsync(request.Url, securityScore: null, credibilityScore: null, aiScore: response.OverallAiScore);
         }
 
         return response;
@@ -95,6 +95,93 @@ public class AiCheckService
         if (claude != null)
         {
             return (int)Math.Round(claude.AiScore * 0.6 + othersWeighted * 0.4);
+        }
+
+        return (int)Math.Round(othersWeighted);
+    }
+
+    public async Task<AllModelsAiCheckResponse> RunAllModelsAsync(AiCheckRequest request, string claudeApiKey)
+    {
+        var text = request.Text;
+        if (string.IsNullOrWhiteSpace(text) && !string.IsNullOrWhiteSpace(request.Url))
+        {
+            text = await _htmlExtractor.ExtractTextFromUrl(request.Url);
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return new AllModelsAiCheckResponse { TextLength = 0 };
+        }
+
+        // Run heuristic checks once
+        var heuristicChecks = _checks.Where(c => c.Type != AiCheckType.ClaudeAiModel);
+        var heuristicResults = await Task.WhenAll(heuristicChecks.Select(c => c.RunAsync(text)));
+
+        // Run Claude with all 3 models in parallel
+        var models = new[]
+        {
+            ("claude-haiku-4-5-20251001", "Haiku 4.5"),
+            ("claude-sonnet-4-6", "Sonnet 4.6"),
+            ("claude-opus-4-7", "Opus 4.7")
+        };
+
+        var modelTasks = models.Select(async m =>
+        {
+            var score = await _anthropic.DetectAiTextAsync(claudeApiKey, text, m.Item1);
+            return new ModelResult
+            {
+                Model = m.Item1,
+                Label = m.Item2,
+                AiScore = score,
+                OverallAiScore = CalculateOverallScoreFromParts(score, heuristicResults)
+            };
+        });
+
+        var modelResults = await Task.WhenAll(modelTasks);
+        var averageScore = (int)Math.Round(modelResults.Average(r => r.OverallAiScore));
+
+        if (!string.IsNullOrWhiteSpace(request.Url))
+        {
+            await _scoreStore.SavePageScoreAsync(request.Url, securityScore: null, credibilityScore: null, aiScore: averageScore);
+        }
+
+        return new AllModelsAiCheckResponse
+        {
+            AverageAiScore = averageScore,
+            TextLength = text.Length,
+            ModelResults = [.. modelResults],
+            HeuristicResults = [.. heuristicResults.OrderByDescending(r => r.AiScore)]
+        };
+    }
+
+    private static int CalculateOverallScoreFromParts(int claudeScore, AiCheckResult[] heuristicResults)
+    {
+        var checkWeights = new Dictionary<AiCheckType, double>
+        {
+            { AiCheckType.SentenceUniformity, 1.2 },
+            { AiCheckType.RepetitivePhrasing, 1.2 },
+            { AiCheckType.PerplexityEstimation, 1.1 },
+            { AiCheckType.VocabularyRichness, 1.0 },
+            { AiCheckType.TransitionalPhrases, 1.0 },
+            { AiCheckType.ParagraphStructure, 0.9 },
+            { AiCheckType.PunctuationPatterns, 0.8 },
+            { AiCheckType.HedgingLanguage, 0.7 },
+        };
+
+        var weightedSum = 0.0;
+        var totalWeight = 0.0;
+        foreach (var r in heuristicResults.Where(r => r.AiScore > 0))
+        {
+            var weight = checkWeights.GetValueOrDefault(r.Type, 1.0);
+            weightedSum += r.AiScore * weight;
+            totalWeight += weight;
+        }
+
+        var othersWeighted = totalWeight > 0 ? weightedSum / totalWeight : 0;
+
+        if (claudeScore > 0)
+        {
+            return (int)Math.Round(claudeScore * 0.6 + othersWeighted * 0.4);
         }
 
         return (int)Math.Round(othersWeighted);

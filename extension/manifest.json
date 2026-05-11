@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Secure Web",
+  "name": "ClearSource",
   "version": "0.1.0",
   "description": "Run security and AI content checks on any website.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],

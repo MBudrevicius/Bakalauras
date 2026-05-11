@@ -104,6 +104,58 @@ export function applyPerElementHighlight(scores) {
   }
 }
 
+// Apply per-element highlighting for low-credibility paragraphs.
+export function applyCredibilityHighlight(scores, explanations, topic, relatedPages) {
+  document.querySelectorAll("[data-ai-checker-hl]").forEach(el => {
+    el.style.removeProperty("background-color");
+    el.removeAttribute("data-ai-checker-hl");
+    el.removeAttribute("title");
+  });
+
+  const sourceHints = Array.isArray(relatedPages)
+    ? relatedPages
+      .slice(0, 3)
+      .map(p => {
+        try {
+          return new URL(p.url).hostname;
+        } catch {
+          return p.title || p.url || "Unknown source";
+        }
+      })
+    : [];
+
+  for (let i = 0; i < scores.length; i++) {
+    const credibility = Math.max(0, Math.min(100, Number(scores[i] || 75)));
+    if (credibility >= 60) continue;
+
+    const el = document.querySelector(`[data-ai-seg="${i}"]`);
+    if (!el) continue;
+
+    let color;
+    let severityLabel;
+    if (credibility <= 20) {
+      color = "rgba(231, 76, 60, 0.28)";
+      severityLabel = "Very low credibility — likely misinformation.";
+    } else if (credibility <= 40) {
+      color = "rgba(230, 126, 34, 0.24)";
+      severityLabel = "Low credibility — mostly inaccurate or misleading.";
+    } else {
+      color = "rgba(241, 196, 15, 0.2)";
+      severityLabel = "Questionable credibility — verify with independent sources.";
+    }
+
+    const explanation = (Array.isArray(explanations) && explanations[i]) ? explanations[i] : "";
+    const topicLine = topic ? `Topic: ${topic}` : "";
+    const sourceLine = sourceHints.length > 0
+      ? `Sources checked: ${sourceHints.join(", ")}`
+      : "";
+
+    el.style.backgroundColor = color;
+    el.setAttribute("data-ai-checker-hl", "1");
+    el.title = `Credibility: ${credibility}%. ${severityLabel}${explanation ? `\n${explanation}` : ""}${topicLine ? `\n${topicLine}` : ""}${sourceLine ? `\n${sourceLine}` : ""}`;
+  }
+}
+
 // Clear all highlights and segment markers
 export function clearHighlight() {
   document.querySelectorAll("[data-ai-checker-hl]").forEach(el => {

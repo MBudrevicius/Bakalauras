@@ -26,6 +26,8 @@ try
 
     builder.Services.AddOpenApi();
     builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("NoRedirect")
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -82,14 +84,17 @@ try
 
     var app = builder.Build();
 
-    Log.Information("Starting Secure Web application...");
+    Log.Information("Starting ClearSource application...");
 
-    // Apply database migrations automatically
+    // Apply database migrations automatically (skip for InMemory testing)
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Log.Information("Applying database migrations...");
-        db.Database.Migrate();
+        if (db.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            Log.Information("Applying database migrations...");
+            db.Database.Migrate();
+        }
     }
 
     if (app.Environment.IsDevelopment())
@@ -97,7 +102,7 @@ try
         app.MapOpenApi();
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/openapi/v1.json", "Secure Web API");
+            options.SwaggerEndpoint("/openapi/v1.json", "ClearSource API");
         });
         Log.Information("Swagger UI enabled for development");
     }
@@ -123,3 +128,6 @@ finally
     Log.Information("Application shutdown at {Date}", DateTime.UtcNow);
     await Log.CloseAndFlushAsync();
 }
+
+// Make the implicit Program class public for WebApplicationFactory in tests
+public partial class Program { }

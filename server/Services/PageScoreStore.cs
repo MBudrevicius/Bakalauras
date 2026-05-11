@@ -31,7 +31,7 @@ public class PageScoreStore
         return await _context.PageScores.FirstOrDefaultAsync(p => p.Domain == domain);
     }
 
-    public async Task SavePageScoreAsync(string url, int? securityScore, int? aiScore)
+    public async Task SavePageScoreAsync(string url, int? securityScore, int? credibilityScore, int? aiScore)
     {
         var domain = ExtractDomain(url);
 
@@ -44,8 +44,10 @@ public class PageScoreStore
                 Url = domain,
                 Domain = domain,
                 SecurityScore = securityScore ?? 0,
+                CredibilityScore = credibilityScore ?? 0,
                 AiScore = aiScore ?? 0,
                 SecurityCheckCount = securityScore.HasValue ? 1 : 0,
+                CredibilityCheckCount = credibilityScore.HasValue ? 1 : 0,
                 AiCheckCount = aiScore.HasValue ? 1 : 0,
                 LastChecked = DateTime.UtcNow,
                 CheckCount = 1,
@@ -59,6 +61,12 @@ public class PageScoreStore
                 var count = existingScore.SecurityCheckCount;
                 existingScore.SecurityScore = (int)Math.Round((existingScore.SecurityScore * (double)count + securityScore.Value) / (count + 1));
                 existingScore.SecurityCheckCount++;
+            }
+            if (credibilityScore.HasValue)
+            {
+                var count = existingScore.CredibilityCheckCount;
+                existingScore.CredibilityScore = (int)Math.Round((existingScore.CredibilityScore * (double)count + credibilityScore.Value) / (count + 1));
+                existingScore.CredibilityCheckCount++;
             }
             if (aiScore.HasValue)
             {
@@ -97,6 +105,7 @@ public class PageScoreStore
         }
 
         var relSecScores = new List<int>();
+        var relCredScores = new List<int>();
         var relAiScores = new List<int>();
 
         foreach (var link in links)
@@ -107,10 +116,12 @@ public class PageScoreStore
                 continue;
             }
             relSecScores.Add(stored.SecurityScore);
+            relCredScores.Add(stored.CredibilityScore);
             relAiScores.Add(stored.AiScore);
         }
 
         pageScore.SecurityScore = CalculatePageWithRelatedPagesScore(pageScore.SecurityScore, relSecScores);
+        pageScore.CredibilityScore = CalculatePageWithRelatedPagesScore(pageScore.CredibilityScore, relCredScores);
         pageScore.AiScore = CalculatePageWithRelatedPagesScore(pageScore.AiScore, relAiScores);
 
         return pageScore;

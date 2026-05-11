@@ -1,13 +1,11 @@
-import { fetchApi, API_BASE } from "./api.js";
-import { showStatus, esc, aiScoreClass, aiBarColor, fetchStoredScores } from "./helpers.js";
+import { fetchApi } from "./api.js";
+import { showStatus, esc, aiScoreClass, aiBarColor, fetchStoredScores, showLoading, hideLoading, showErrorModal } from "./helpers.js";
 import { confirmApiCost, shouldConfirmCost, estimateAiScanCost } from "./cost.js";
-import { extractPageSegments, applyPerElementHighlight, clearHighlight } from "./highlight.js";
 import { saveToHistory } from "./history.js";
 
 export async function initAi(getWebTab, getCurrentUrl) {
   const aiFullBtn      = document.getElementById("ai-full-page-btn");
   const aiSelBtn       = document.getElementById("ai-selection-btn");
-  const aiHighlightChk = document.getElementById("ai-highlight-toggle");
   const aiScoreSection = document.getElementById("ai-score-section");
   const aiScoreCircle  = document.getElementById("ai-score-circle");
   const aiScoreValue   = document.getElementById("ai-score-value");
@@ -68,14 +66,14 @@ export async function initAi(getWebTab, getCurrentUrl) {
     chrome.storage.local.set({ claudeModel: modelSelect.value });
   });
 
-  // Restore highlight toggle state
-  const { aiHighlightEnabled } = await chrome.storage.local.get("aiHighlightEnabled");
-  if (aiHighlightEnabled) aiHighlightChk.checked = true;
-
   // Restore saved state
   const { aiState } = await chrome.storage.session.get("aiState");
   if (aiState?.url === getCurrentUrl() && aiState.data) {
-    renderAiResults(aiState.data);
+    if (aiState.isAllModels) {
+      renderAllModelsResults(aiState.data);
+    } else {
+      renderAiResults(aiState.data);
+    }
   }
 
   // Full page scan
@@ -130,33 +128,14 @@ export async function initAi(getWebTab, getCurrentUrl) {
   async function runAiCheck(body) {
     const savedKey = useAiChk.checked ? apiKeyInput.value.trim() : "";
 
+    if (modelSelect.value === "all-models" && !savedKey) {
+      showStatus(aiStatus, "API key is required for All Models mode.", true);
+      return;
+    }
+
     if (savedKey && await shouldConfirmCost()) {
       const textLen = body.text?.length || 0;
-      let highlight = null;
-      let highlightFailed = false;
-
-      if (aiHighlightChk.checked) {
-        try {
-          const tab = await getWebTab();
-          const [{ result: segs }] = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: extractPageSegments
-          });
-          if (segs && segs.length > 0) {
-            const totalSegmentChars = segs.reduce((sum, s) => sum + Math.min(s.text.length, 300), 0);
-            highlight = { segmentCount: segs.length, totalSegmentChars };
-          } else {
-            highlightFailed = true;
-          }
-        } catch {
-          highlightFailed = true;
-        }
-      }
-
-      const est = estimateAiScanCost(textLen, modelSelect.value, highlight);
-      if (aiHighlightChk.checked && highlightFailed) {
-        est.desc += " (highlight unavailable on this page)";
-      }
+      const est = estimateAiScanCost(textLen, modelSelect.value, null);
       const confirmed = await confirmApiCost(est);
       if (!confirmed) return;
     }
@@ -165,7 +144,8 @@ export async function initAi(getWebTab, getCurrentUrl) {
     aiSelBtn.disabled = true;
     aiResultsList.innerHTML = "";
     aiScoreSection.classList.add("hidden");
-    showStatus(aiStatus, "Analyzing content\u2026");
+    showStatus(aiStatus, "");
+    showLoading("Analyzing content…");
 
     try {
       const headers = {};
@@ -174,29 +154,40 @@ export async function initAi(getWebTab, getCurrentUrl) {
         headers["X-Claude-Model"] = modelSelect.value;
       }
 
-      const data = await fetchApi("/api/ai-checks", {
+      const isAllModels = modelSelect.value === "all-models";
+      const endpoint = isAllModels ? "/api/ai-checks/all-models" : "/api/ai-checks";
+
+      const data = await fetchApi(endpoint, {
         method: "POST",
         headers,
         body: JSON.stringify(body)
       });
-      renderAiResults(data);
-      chrome.storage.session.set({ aiState: { url: getCurrentUrl(), data } });
+
+      if (isAllModels) {
+        renderAllModelsResults(data);
+      } else {
+        renderAiResults(data);
+      }
+      chrome.storage.session.set({ aiState: { url: getCurrentUrl(), data, isAllModels } });
+
+      const score = isAllModels ? data.averageAiScore : (data.overallAiScore ?? 0);
+      const results = isAllModels
+        ? data.modelResults.map(r => ({ title: r.label, aiScore: r.overallAiScore, description: `Claude ${r.label} detection score` }))
+        : data.results.map(r => ({ title: r.title, aiScore: r.aiScore, description: r.description }));
+
       await saveToHistory({
         type: "ai",
         url: getCurrentUrl(),
-        score: data.overallAiScore ?? 0,
-        results: data.results.map(r => ({ title: r.title, aiScore: r.aiScore, description: r.description }))
+        score,
+        results
       });
       // Refetch stored average from server (running average now updated)
-      await fetchStoredScores(getCurrentUrl());
+      await fetchStoredScores(getCurrentUrl(), true);
       showStatus(aiStatus, data.textLength ? `Analyzed ${data.textLength} characters.` : "");
-
-      if (aiHighlightChk.checked) {
-        await runHighlightAnalysis(true);
-      }
     } catch (err) {
-      showStatus(aiStatus, err.message || "Failed to reach server.", true);
+      showErrorModal(err.message || "Failed to reach server.");
     } finally {
+      hideLoading();
       aiFullBtn.disabled = false;
       aiSelBtn.disabled = false;
     }
@@ -226,74 +217,64 @@ export async function initAi(getWebTab, getCurrentUrl) {
     }
   }
 
-  // Highlight toggle
-  aiHighlightChk.addEventListener("change", async () => {
-    chrome.storage.local.set({ aiHighlightEnabled: aiHighlightChk.checked });
-    if (!aiHighlightChk.checked) {
-      await removeHighlights();
-    }
-  });
+  function renderAllModelsResults(data) {
+    const score = data.averageAiScore ?? 0;
+    aiScoreValue.textContent = score + "%";
+    aiScoreCircle.className = "score-circle " + aiScoreClass(score);
+    aiScoreSection.classList.remove("hidden");
 
-  async function runHighlightAnalysis(skipCostConfirm = false) {
-    try {
-      const tab = await getWebTab();
+    aiResultsList.innerHTML = "";
 
-      const [{ result: segments }] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: extractPageSegments
-      });
+    // Claude combined result (clickable to expand per-model breakdown)
+    const avgClaudeScore = Math.round(data.modelResults.reduce((s, m) => s + m.aiScore, 0) / data.modelResults.length);
+    const claudeLi = document.createElement("li");
+    claudeLi.className = "result-item result-item-expandable";
+    const claudeBarColor = aiBarColor(avgClaudeScore);
+    claudeLi.innerHTML = `
+      <div class="result-body" style="width:100%">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <span class="result-title">Claude AI Detection <span class="expand-hint">▸</span></span>
+          <span class="result-title" style="color:${claudeBarColor}">${avgClaudeScore}%</span>
+        </div>
+        <span class="result-desc">Average across all models. Click to see breakdown.</span>
+        <div class="ai-bar"><div class="ai-bar-fill" style="width:${avgClaudeScore}%; background:${claudeBarColor}"></div></div>
+        <div class="model-breakdown hidden">
+          ${data.modelResults.map(m => {
+            const mBarColor = aiBarColor(m.aiScore);
+            return `<div class="model-breakdown-item">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span class="result-desc" style="color:#d0d4e0">${esc(m.label)}</span>
+                <span class="result-desc" style="color:${mBarColor}">${m.aiScore}%</span>
+              </div>
+              <div class="ai-bar"><div class="ai-bar-fill" style="width:${m.aiScore}%; background:${mBarColor}"></div></div>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    claudeLi.addEventListener("click", () => {
+      const breakdown = claudeLi.querySelector(".model-breakdown");
+      const hint = claudeLi.querySelector(".expand-hint");
+      breakdown.classList.toggle("hidden");
+      hint.textContent = breakdown.classList.contains("hidden") ? "▸" : "▾";
+    });
+    aiResultsList.appendChild(claudeLi);
 
-      if (!segments || segments.length === 0) return;
-
-      const storedKey = useAiChk.checked ? apiKeyInput.value.trim() : "";
-
-      if (!skipCostConfirm && storedKey && await shouldConfirmCost()) {
-        const totalSegmentChars = segments.reduce((sum, s) => sum + Math.min(s.text.length, 300), 0);
-        const est = estimateAiScanCost(0, modelSelect.value, { segmentCount: segments.length, totalSegmentChars });
-        est.desc = `Highlight analysis (${segments.length} paragraphs)`;
-        const confirmed = await confirmApiCost(est);
-        if (!confirmed) return;
-      }
-
-      showStatus(aiStatus, `Analyzing ${segments.length} paragraphs for highlighting\u2026`);
-
-      const headers = { "Content-Type": "application/json" };
-      if (storedKey) {
-        headers["X-Claude-Api-Key"] = storedKey;
-        headers["X-Claude-Model"] = modelSelect.value;
-      }
-
-      const res = await fetch(`${API_BASE}/api/ai-checks/highlight`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ segments: segments.map(s => s.text) })
-      });
-      if (!res.ok) {
-        showStatus(aiStatus, "Highlight analysis failed.", true);
-        return;
-      }
-      const data = await res.json();
-
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: applyPerElementHighlight,
-        args: [data.scores]
-      });
-
-      const highlighted = data.scores.filter(s => s >= 50).length;
-      showStatus(aiStatus, `Highlighted ${highlighted}/${segments.length} paragraphs with AI indicators.`);
-    } catch (err) {
-      showStatus(aiStatus, "Could not apply highlights: " + err.message, true);
+    // Heuristic results (same as single-model view)
+    for (const r of data.heuristicResults) {
+      const li = document.createElement("li");
+      li.className = "result-item";
+      const barColor = aiBarColor(r.aiScore);
+      li.innerHTML = `
+        <div class="result-body" style="width:100%">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <span class="result-title">${esc(r.title)}</span>
+            <span class="result-title" style="color:${barColor}">${r.aiScore}%</span>
+          </div>
+          <span class="result-desc">${esc(r.description)}</span>
+          <div class="ai-bar"><div class="ai-bar-fill" style="width:${r.aiScore}%; background:${barColor}"></div></div>
+        </div>`;
+      aiResultsList.appendChild(li);
     }
   }
 
-  async function removeHighlights() {
-    try {
-      const tab = await getWebTab();
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: clearHighlight
-      });
-    } catch { /* ignore */ }
-  }
 }

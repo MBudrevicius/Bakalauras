@@ -26,7 +26,7 @@ public class SecurityCheckService
             OverallScore = CalculateScore(results)
         };
 
-        await _scoreStore.SavePageScoreAsync(url, securityScore: response.OverallScore, aiScore: null);
+        await _scoreStore.SavePageScoreAsync(url, securityScore: response.OverallScore, credibilityScore: null, aiScore: null);
 
         return response;
     }

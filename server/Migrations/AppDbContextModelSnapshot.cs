@@ -39,6 +39,12 @@ namespace server.Migrations
                     b.Property<int>("CheckCount")
                         .HasColumnType("integer");
 
+                    b.Property<int>("CredibilityCheckCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CredibilityScore")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Domain")
                         .IsRequired()
                         .HasMaxLength(255)
