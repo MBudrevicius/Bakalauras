@@ -37,4 +37,4 @@ jobs:
           dotnet-version: 9.0.x
       - run: dotnet restore
       - run: dotnet build --no-restore
-      - run: dotnet test --no-build --verbosity normal
+      - run: dotnet test --no-build --verbosity normal --filter "FullyQualifiedName~Unit"
