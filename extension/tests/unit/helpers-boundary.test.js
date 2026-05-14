@@ -1,4 +1,4 @@
-import { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } from "./helper-functions";
+const { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } = require("./helper-functions");
 
 describe("secScoreClass - boundary values", () => {
   test.each([

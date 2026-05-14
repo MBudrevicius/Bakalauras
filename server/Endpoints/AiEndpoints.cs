@@ -41,5 +41,26 @@ public static class AiEndpoints
             var response = await service.RunAllModelsAsync(request, claudeApiKey);
             return Results.Ok(response);
         });
+
+        app.MapPost("/api/ai-checks/highlight", async (
+            HighlightRequest request,
+            AiCheckService service,
+            HttpContext httpContext) =>
+        {
+            if (request.Segments == null || request.Segments.Length == 0)
+            {
+                return Results.BadRequest(new { error = "Segments are required." });
+            }
+
+            if (request.Segments.Length > 500)
+            {
+                return Results.BadRequest(new { error = "Too many segments (max 500)." });
+            }
+
+            var claudeApiKey = httpContext.Request.Headers["X-Claude-Api-Key"].FirstOrDefault();
+            var claudeModel = httpContext.Request.Headers["X-Claude-Model"].FirstOrDefault();
+            var scores = await service.AnalyzeSegmentsAsync(request.Segments, claudeApiKey, claudeModel);
+            return Results.Ok(new { scores });
+        });
     }
 }

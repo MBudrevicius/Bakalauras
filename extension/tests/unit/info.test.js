@@ -1,4 +1,4 @@
-import { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } from "./info-functions";
+const { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } = require("./info-functions");
 
 describe("computeCoverageScore", () => {
   test("0 reliable sources → 0", () => expect(computeCoverageScore(0)).toBe(0));

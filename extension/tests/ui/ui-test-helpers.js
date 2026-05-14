@@ -1,6 +1,6 @@
-import { createServer } from "http";
-import { readFile } from "fs";
-import { resolve as _resolve, normalize, join, extname } from "path";
+const { createServer } = require("http");
+const { readFile } = require("fs");
+const { resolve: _resolve, normalize, join, extname } = require("path");
 
 const EXTENSION_DIR = _resolve(__dirname, "../..");
 
@@ -161,4 +161,4 @@ function getFetchMockScript() {
   `;
 }
 
-export default { startServer, getChromeMockScript, getFetchMockScript, API_RESPONSES };
+module.exports = { startServer, getChromeMockScript, getFetchMockScript, API_RESPONSES };

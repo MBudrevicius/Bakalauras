@@ -1,4 +1,4 @@
-import { classifyAiHighlight, classifyCredibilityHighlight } from "./highlight-functions";
+const { classifyAiHighlight, classifyCredibilityHighlight } = require("./highlight-functions");
 
 describe("classifyAiHighlight", () => {
   test("returns null for scores below 40", () => {

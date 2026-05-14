@@ -1,4 +1,4 @@
-import { estimateAiScanCost, estimateCrossCheckCost, formatCost, MODEL_PRICING } from "./cost-functions";
+const { estimateAiScanCost, estimateCrossCheckCost, formatCost, MODEL_PRICING } = require("./cost-functions");
 
 describe("estimateAiScanCost - edge cases", () => {
   test("zero text length returns zero-cost base (no detection)", () => {

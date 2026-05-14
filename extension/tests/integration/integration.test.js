@@ -1,9 +1,9 @@
-import { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } from "../unit/helper-functions";
-import { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } from "../unit/info-functions";
-import { classifyAiHighlight, classifyCredibilityHighlight } from "../unit/highlight-functions";
-import { MAX_HISTORY, prependEntry } from "../unit/history-functions";
-import { estimateAiScanCost, estimateCrossCheckCost, formatCost } from "../unit/cost-functions";
-import { resolveSeverity, getSeverityMeta } from "../unit/security-functions";
+const { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } = require("../unit/helper-functions");
+const { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } = require("../unit/info-functions");
+const { classifyAiHighlight, classifyCredibilityHighlight } = require("../unit/highlight-functions");
+const { MAX_HISTORY, prependEntry } = require("../unit/history-functions");
+const { estimateAiScanCost, estimateCrossCheckCost, formatCost } = require("../unit/cost-functions");
+const { resolveSeverity, getSeverityMeta } = require("../unit/security-functions");
 
 describe("Integration: Credibility score → display pipeline", () => {
   test("high credibility score flows through overall calculation and display correctly", () => {
