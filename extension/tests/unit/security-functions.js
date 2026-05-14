@@ -1,4 +1,3 @@
-// Pure functions extracted from security.js for testing
 
 const severityMeta = {
   Pass:    { cls: "severity-pass",    icon: "✓" },

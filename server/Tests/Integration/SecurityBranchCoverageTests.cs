@@ -19,8 +19,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         _client = factory.CreateClient();
     }
 
-    // --- PhishingCheck branches ---
-
     [Fact]
     public async Task SecurityChecks_IpAddressUrl_TriggersPhishingWarning()
     {
@@ -113,8 +111,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Contains("protocol", phishing.Description, StringComparison.OrdinalIgnoreCase);
     }
 
-    // --- MixedContentCheck branches ---
-
     [Fact]
     public async Task SecurityChecks_HttpUrl_MixedContentNotApplicable()
     {
@@ -149,8 +145,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Contains("active", mixed.Description, StringComparison.OrdinalIgnoreCase);
     }
 
-    // --- GoogleSafeBrowsingCheck branches ---
-
     [Fact]
     public async Task SecurityChecks_GoogleSafeBrowsingThreat_ReturnsWarning()
     {
@@ -168,11 +162,8 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(SecurityCheckSeverity.Warning, safeBrowsing.Severity);
         Assert.Contains("flagged", safeBrowsing.Description, StringComparison.OrdinalIgnoreCase);
 
-        // Reset for other tests
         _factory.FakeApiHandler.GoogleSafeBrowsingThreatDetected = false;
     }
-
-    // --- RedirectChainCheck branches ---
 
     [Fact]
     public async Task SecurityChecks_UrlWithRedirect_DetectsRedirectChain()
@@ -189,7 +180,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
 
         var redirect = result.Results.FirstOrDefault(r => r.Type == SecurityCheckType.RedirectChain);
         Assert.NotNull(redirect);
-        // Should detect at least 1 redirect hop
         Assert.True(redirect.Description.Contains("redirect", StringComparison.OrdinalIgnoreCase) ||
                     redirect.Description.Contains("hop", StringComparison.OrdinalIgnoreCase) ||
                     redirect.Severity == SecurityCheckSeverity.Pass);
@@ -218,8 +208,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         _factory.FakeApiHandler.RedirectDowngradeHttps = false;
     }
 
-    // --- SuspiciousLinksCheck branches ---
-
     [Fact]
     public async Task SecurityChecks_PageWithSuspiciousLinks_DetectsIssues()
     {
@@ -234,19 +222,15 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
 
         var suspicious = result.Results.FirstOrDefault(r => r.Type == SecurityCheckType.SuspiciousLinks);
         Assert.NotNull(suspicious);
-        // Should detect hidden links, suspicious TLDs, or mismatched text
         Assert.True(suspicious.Severity == SecurityCheckSeverity.Warning ||
                     suspicious.Severity == SecurityCheckSeverity.Info);
 
         _factory.FakeApiHandler.SuspiciousLinksHost = null;
     }
 
-    // --- Additional edge cases for coverage ---
-
     [Fact]
     public async Task SecurityChecks_HttpsCleanSite_AllChecksPass()
     {
-        // Ensure all handlers are in clean state  
         _factory.FakeApiHandler.GoogleSafeBrowsingThreatDetected = false;
         _factory.FakeApiHandler.RedirectFromHost = null;
         _factory.FakeApiHandler.MixedContentHost = null;
@@ -259,7 +243,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
         var result = await response.Content.ReadFromJsonAsync<SecurityCheckResponse>();
         Assert.NotNull(result);
 
-        // Most checks should pass for a clean HTTPS site
         var passes = result.Results.Count(r => r.Severity == SecurityCheckSeverity.Pass);
         Assert.True(passes >= 3, $"Expected at least 3 passing checks, got {passes}");
     }
@@ -267,7 +250,6 @@ public class SecurityBranchCoverageTests : IClassFixture<IntegrationTestFactory>
     [Fact]
     public async Task SecurityChecks_PrivateIpRange_HandledGracefully()
     {
-        // 127.0.0.1 is private - some checks should return Info
         var response = await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = "https://127.0.0.1/admin" });
 

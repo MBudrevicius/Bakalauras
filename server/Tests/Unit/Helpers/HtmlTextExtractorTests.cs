@@ -10,7 +10,6 @@ public class HtmlTextExtractorTests
     {
         var html = "<html><body><script>alert('hi')</script><style>.x{}</style><p>Hello World</p></body></html>";
 
-        // Use reflection to test the private static method
         var method = typeof(HtmlTextExtractor).GetMethod("ExtractTextFromHtml",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 

@@ -101,7 +101,6 @@ public class ClaudeAiModelCheckRunAsyncTests
         var result = await check.RunAsync(longText, apiKey: "sk-test");
 
         Assert.Equal(50, result.AiScore);
-        // Verify the text was truncated (the handler was called)
         Assert.NotNull(handler.LastRequest);
     }
 

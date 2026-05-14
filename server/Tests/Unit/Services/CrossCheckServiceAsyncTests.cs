@@ -65,7 +65,6 @@ public class CrossCheckServiceAsyncTests
             "https://example.com", "Article Title - SiteName", "Some text",
             [], claudeApiKey: null);
 
-        // Without API key, should use CleanTitle instead of ExtractTopic
         Assert.Equal("Article Title", response.Topic);
         Assert.Equal("https://example.com", response.Url);
         db.Dispose();
@@ -80,7 +79,6 @@ public class CrossCheckServiceAsyncTests
             if (request.RequestUri!.Host == "api.anthropic.com")
             {
                 callCount++;
-                // First call = ExtractTopic, second = EvaluateSourceReliability, third = VerifyCredibility
                 if (callCount == 1)
                     return new HttpResponseMessage(HttpStatusCode.OK)
                     { Content = new StringContent(AnthropicJsonResponse("\"climate change 2026\"")) };
@@ -90,7 +88,6 @@ public class CrossCheckServiceAsyncTests
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 { Content = new StringContent(AnthropicJsonResponse("SCORE: 80\nVERDICT: Mostly Supported\nCLAIMS:\n- Claim: Supported - reason")) };
             }
-            // Brave search response
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(BraveSearchJsonResponse(
@@ -161,7 +158,6 @@ public class CrossCheckServiceAsyncTests
             "https://example.com/page", "Title", "",
             []);
 
-        // Should filter out same-domain results
         Assert.DoesNotContain(response.RelatedPages, p => p.Url.Contains("example.com"));
         db.Dispose();
     }
@@ -181,7 +177,6 @@ public class CrossCheckServiceAsyncTests
                 if (callCount == 2) // EvaluateSourceReliability
                     return new HttpResponseMessage(HttpStatusCode.OK)
                     { Content = new StringContent(AnthropicJsonResponse("[0] 90")) };
-                // VerifyCredibility
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 { Content = new StringContent(AnthropicJsonResponse("SCORE: 75\nVERDICT: Supported")) };
             }
@@ -217,8 +212,6 @@ public class CrossCheckServiceAsyncTests
         Assert.Empty(db.PageScores);
         db.Dispose();
     }
-
-    // CrossCheckAllModelsAsync tests
 
     [Fact]
     public async Task CrossCheckAllModelsAsync_EmptyTopic_UsesCleanTitle()
@@ -271,7 +264,6 @@ public class CrossCheckServiceAsyncTests
             "https://example.com", "Title", "Article text",
             [], "sk-test");
 
-        // Should have model results (3 models)
         Assert.NotNull(response.ModelResults);
         Assert.NotNull(response.Credibility);
         db.Dispose();
@@ -292,7 +284,6 @@ public class CrossCheckServiceAsyncTests
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 { Content = new StringContent(AnthropicJsonResponse("50")) };
             }
-            // Brave returns no results
             return new HttpResponseMessage(HttpStatusCode.OK)
             { Content = new StringContent(JsonSerializer.Serialize(new { web = new { results = Array.Empty<object>() } })) };
         });

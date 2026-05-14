@@ -1,4 +1,4 @@
-const { severityMeta, severityMap, resolveSeverity, getSeverityMeta } = require("./security-functions");
+import { severityMeta, severityMap, resolveSeverity, getSeverityMeta } from "./security-functions";
 
 describe("severityMap", () => {
   test("0 → Pass", () => expect(severityMap[0]).toBe("Pass"));

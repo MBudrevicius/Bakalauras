@@ -25,7 +25,6 @@ public class CrossCheckServiceTests
         return (string)method.Invoke(null, [title])!;
     }
 
-    // AnalyzePageLinks tests
     [Fact]
     public void AnalyzePageLinks_EmptyList_ReturnsZero()
     {
@@ -113,7 +112,6 @@ public class CrossCheckServiceTests
         Assert.Equal(10, samples.Count);
     }
 
-    // IsCommonNonSourceDomain tests
     [Theory]
     [InlineData("facebook.com", true)]
     [InlineData("twitter.com", true)]
@@ -136,7 +134,6 @@ public class CrossCheckServiceTests
         Assert.Equal(expected, InvokeIsCommonNonSourceDomain(host));
     }
 
-    // CleanTitle tests
     [Fact]
     public void CleanTitle_WithSeparator_RemovesSiteName()
     {
@@ -158,7 +155,6 @@ public class CrossCheckServiceTests
     [Fact]
     public void CleanTitle_ShortPrefix_DoesNotRemove()
     {
-        // Separator at position <= 10, should not be removed
         var result = InvokeCleanTitle("Short - X");
         Assert.Equal("Short - X", result);
     }

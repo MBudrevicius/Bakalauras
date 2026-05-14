@@ -1,12 +1,4 @@
-const {
-  getModelPricing,
-  tokensFromChars,
-  calcCost,
-  estimateAiScanCost,
-  estimateCrossCheckCost,
-  formatCost,
-  MODEL_PRICING,
-} = require("./cost-functions");
+import { getModelPricing, tokensFromChars, calcCost, estimateAiScanCost, estimateCrossCheckCost, formatCost, MODEL_PRICING } from "./cost-functions";
 
 describe("getModelPricing", () => {
   test("returns correct pricing for Haiku", () => {
@@ -53,7 +45,6 @@ describe("calcCost", () => {
   test("calculates cost correctly for Haiku pricing", () => {
     const pricing = MODEL_PRICING["claude-haiku-4-5-20251001"];
     const cost = calcCost(1000, 500, pricing);
-    // (1000/1M)*1.0 + (500/1M)*5.0 = 0.001 + 0.0025 = 0.0035
     expect(cost).toBeCloseTo(0.0035, 6);
   });
 
@@ -92,7 +83,6 @@ describe("estimateAiScanCost", () => {
     const small = estimateAiScanCost(1000);
     const huge = estimateAiScanCost(100000);
     const atMax = estimateAiScanCost(4000);
-    // Huge and atMax should produce the same result (both capped at 4000)
     expect(huge.inputTokens).toBe(atMax.inputTokens);
   });
 
@@ -131,7 +121,6 @@ describe("estimateCrossCheckCost", () => {
 
   test("includes both topic extraction and credibility tokens", () => {
     const est = estimateCrossCheckCost(2000);
-    // Output should include topic extraction + credibility = 50 + 500 = 550
     expect(est.outputTokens).toBe(550);
   });
 

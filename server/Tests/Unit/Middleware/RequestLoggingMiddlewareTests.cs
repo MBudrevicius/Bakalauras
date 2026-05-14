@@ -30,7 +30,6 @@ public class RequestLoggingMiddlewareTests
         await middleware.InvokeAsync(context);
 
         Assert.True(nextCalled);
-        // Verify logging happened (at least 2 calls: start + complete)
         logger.Verify(
             l => l.Log(
                 It.IsAny<LogLevel>(),
@@ -119,7 +118,6 @@ public class RequestLoggingMiddlewareTests
 
         await middleware.InvokeAsync(context);
 
-        // Body should be restored to original stream
         Assert.Same(originalBody, context.Response.Body);
         Assert.True(originalBody.Length > 0);
     }

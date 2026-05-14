@@ -18,7 +18,6 @@ public class PhishingCheckBranchTests
         return (int)method.Invoke(null, [s, t])!;
     }
 
-    // NormalizeLeetSpeak tests - covering all char branches
     [Theory]
     [InlineData("g00gle", "google")]
     [InlineData("f4cebook", "facebook")]
@@ -55,7 +54,6 @@ public class PhishingCheckBranchTests
         Assert.Equal("google", InvokeNormalizeLeetSpeak("google"));
     }
 
-    // LevenshteinDistance tests
     [Theory]
     [InlineData("", "", 0)]
     [InlineData("a", "", 1)]

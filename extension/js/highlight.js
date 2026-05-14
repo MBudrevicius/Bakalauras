@@ -1,4 +1,3 @@
-// Injected into the web page via chrome.scripting.executeScript - must be self-contained
 
 export function extractPageSegments() {
   const CONTENT_TAGS = new Set(["P", "LI", "TD", "TH", "BLOCKQUOTE", "FIGCAPTION", "DD", "DT", "PRE"]);
@@ -43,8 +42,6 @@ export function extractPageSegments() {
 
   walk(contentRoot);
 
-  // Fallback for SPAs (e.g. Twitter) that don't use standard content tags:
-  // find leaf-level divs that contain substantial text but no nested block elements
   if (segments.length === 0) {
     function isLeafTextDiv(el) {
       if (el.tagName !== "DIV" && el.tagName !== "SPAN") return false;
@@ -77,7 +74,6 @@ export function extractPageSegments() {
   return segments;
 }
 
-// Apply per-element highlighting based on AI scores
 export function applyPerElementHighlight(scores) {
   document.querySelectorAll("[data-ai-checker-hl]").forEach(el => {
     el.style.removeProperty("background-color");
@@ -104,7 +100,6 @@ export function applyPerElementHighlight(scores) {
   }
 }
 
-// Apply per-element highlighting for low-credibility paragraphs.
 export function applyCredibilityHighlight(scores, explanations, topic, relatedPages) {
   document.querySelectorAll("[data-ai-checker-hl]").forEach(el => {
     el.style.removeProperty("background-color");
@@ -156,7 +151,6 @@ export function applyCredibilityHighlight(scores, explanations, topic, relatedPa
   }
 }
 
-// Clear all highlights and segment markers
 export function clearHighlight() {
   document.querySelectorAll("[data-ai-checker-hl]").forEach(el => {
     el.style.removeProperty("background-color");

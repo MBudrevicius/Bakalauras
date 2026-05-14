@@ -35,14 +35,12 @@ public partial class RepetitivePhrasingCheck : IAiCheck
             .Where(s => s.Length > 0)
             .ToList();
 
-        // Repeated sentence starters (3-word)
         var starterGroups = openers3.GroupBy(o => o, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1)
             .ToList();
         var repeatedStarterCount = starterGroups.Sum(g => g.Count());
         var starterRepetitionRate = (double)repeatedStarterCount / sentences.Count;
 
-        // Repeated 5-word openings (stronger signal)
         var opener5Groups = openers5.GroupBy(o => o, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1)
             .ToList();

@@ -4,7 +4,6 @@ import { initInfo } from "./info.js";
 import { fetchStoredScores } from "./helpers.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Privacy disclaimer
   const disclaimerOverlay  = document.getElementById("disclaimer-overlay");
   const disclaimerAccept   = document.getElementById("disclaimer-accept-btn");
   const disclaimerRemember = document.getElementById("disclaimer-remember-chk");
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Pop-out support
   const params = new URLSearchParams(window.location.search);
   const isPoppedOut = params.has("tabId");
   let targetTabId = isPoppedOut ? parseInt(params.get("tabId"), 10) : null;
@@ -49,7 +47,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     chrome.windows.create({ url: historyUrl, type: "popup", width: 420, height: 650 });
   });
 
-  // Resolve target tab
   async function getWebTab() {
     if (targetTabId) {
       try { return await chrome.tabs.get(targetTabId); }
@@ -59,7 +56,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return tab;
   }
 
-  // Current tab URL
   const urlDisplay = document.getElementById("url-display");
   let currentUrl = "";
 
@@ -79,11 +75,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const getCurrentUrl = () => currentUrl;
 
-  // Tab switching
   const tabs      = document.querySelectorAll(".tab");
   const tabPanels = document.querySelectorAll(".tab-content");
 
-  // Restore saved active tab
   const { activeTab } = await chrome.storage.session.get("activeTab");
   if (activeTab) {
     tabs.forEach(t => t.classList.remove("active"));
@@ -105,12 +99,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Initialize feature modules
   initSecurity(getWebTab, getCurrentUrl);
   await initAi(getWebTab, getCurrentUrl);
   await initInfo(getWebTab, getCurrentUrl);
 
-  // Load stored scores
   if (currentUrl) {
     fetchStoredScores(currentUrl);
   }

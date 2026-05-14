@@ -6,7 +6,6 @@ export async function saveToHistory(entry) {
     ...entry,
     timestamp: Date.now()
   });
-  // Keep only the latest entries
   if (checkHistory.length > MAX_HISTORY) checkHistory.length = MAX_HISTORY;
   await chrome.storage.local.set({ checkHistory });
 }

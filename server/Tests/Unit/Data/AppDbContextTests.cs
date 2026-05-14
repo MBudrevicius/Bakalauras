@@ -40,8 +40,6 @@ public class AppDbContextTests
         await db.SaveChangesAsync();
 
         db.PageScores.Add(new PageScore { Domain = "test.com", Url = "test.com" });
-        // InMemory provider may not enforce unique constraints, but test the setup
-        // instead of asserting throw, verify the model config is correct
         var entity = db.Model.FindEntityType(typeof(PageScore));
         Assert.NotNull(entity);
         var domainIndex = entity!.GetIndexes().FirstOrDefault(i => i.Properties.Any(p => p.Name == "Domain"));

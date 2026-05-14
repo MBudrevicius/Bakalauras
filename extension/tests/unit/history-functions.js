@@ -1,4 +1,3 @@
-// Pure functions extracted from history.js for testing
 
 const MAX_HISTORY = 200;
 

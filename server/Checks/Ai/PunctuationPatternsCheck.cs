@@ -21,7 +21,6 @@ public class PunctuationPatternsCheck : IAiCheck
 
         var totalChars = (double)text.Length;
 
-        // Count punctuation types
         var commas      = text.Count(c => c == ',');
         var periods     = text.Count(c => c == '.');
         var exclamation = text.Count(c => c == '!');
@@ -44,7 +43,6 @@ public class PunctuationPatternsCheck : IAiCheck
             });
         }
 
-        // Ratios
         var commaRatio      = commas / (double)totalPunct;
         var periodRatio     = periods / (double)totalPunct;
         var formalRatio     = (commas + periods + semicolons + colons) / (double)totalPunct;
@@ -54,7 +52,6 @@ public class PunctuationPatternsCheck : IAiCheck
 
         var details = new List<string>();
 
-        // Score each dimension independently on 0-100 scale
         var formalScore = formalRatio switch
         {
             > 0.92 => 85,

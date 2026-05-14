@@ -25,7 +25,6 @@ public class PageScoreStoreRelatedTests
     [Fact]
     public async Task GetPageWithRelatedScoreAsync_NoLinks_ReturnsOwnScore()
     {
-        // HTML with no external links
         var html = "<html><body><p>No links here</p></body></html>";
         var handler = new MockHttpMessageHandler(html);
         var (store, db) = CreateStoreWithExtractor(handler);
@@ -43,25 +42,18 @@ public class PageScoreStoreRelatedTests
     [Fact]
     public async Task GetPageWithRelatedScoreAsync_WithRelatedPages_BlendScores()
     {
-        // HTML with external links to domains we have scores for
         var html = "<html><body><a href=\"https://related.com/page\">Link</a></body></html>";
         var handler = new MockHttpMessageHandler(html);
         var (store, db) = CreateStoreWithExtractor(handler);
 
-        // Save main page score
         await store.SavePageScoreAsync("https://example.com", securityScore: 80, credibilityScore: 60, aiScore: 40);
-        // Save related page score
         await store.SavePageScoreAsync("https://related.com", securityScore: 60, credibilityScore: 80, aiScore: 20);
 
         var result = await store.GetPageWithRelatedScoreAsync("https://example.com");
 
         Assert.NotNull(result);
-        // Score = own * 0.9 + related * 0.1
-        // Security: 80 * 0.9 + 60 * 0.1 = 78
         Assert.Equal(78, result!.SecurityScore);
-        // Credibility: 60 * 0.9 + 80 * 0.1 = 62
         Assert.Equal(62, result.CredibilityScore);
-        // AI: 40 * 0.9 + 20 * 0.1 = 38
         Assert.Equal(38, result.AiScore);
         db.Dispose();
     }

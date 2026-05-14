@@ -9,7 +9,6 @@ public partial class SentenceUniformityCheck : IAiCheck
 
     public Task<AiCheckResult> RunAsync(string text, string? apiKey = null, string? model = null)
     {
-        // Split into sentences
         var sentences = SentenceSplitRegex().Split(text)
             .Select(s => s.Trim())
             .Where(s => s.Length > 0)
@@ -26,7 +25,6 @@ public partial class SentenceUniformityCheck : IAiCheck
             });
         }
 
-        // Get word counts per sentence
         var wordCounts = sentences
             .Select(s => WordRegex().Matches(s).Count)
             .Where(c => c > 0)

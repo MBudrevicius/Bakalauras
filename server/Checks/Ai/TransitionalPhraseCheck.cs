@@ -29,28 +29,22 @@ public partial class TransitionalPhraseCheck : IAiCheck
             .Select(s => s.ToLowerInvariant().TrimStart())
             .ToList();
 
-        // Sentences starting with a conjunctive adverb (furthermore, moreover, consequently, etc.)
         var conjunctiveStarters = sentenceOpeners.Count(s => ConjunctiveAdverbStartRegex().IsMatch(s));
         var conjunctiveRate = (double)conjunctiveStarters / sentences.Count;
 
-        // "It is/it's + adj + to" filler constructions ("It is important to note", "It's worth mentioning", etc.)
         var lowerText = text.ToLowerInvariant();
         var itIsPatternCount = ItIsAdjectiveToRegex().Matches(lowerText).Count;
         var itIsRate = (double)itIsPatternCount / sentences.Count;
 
-        // "This/That + verb" sentence starters ("This means", "This suggests", "That indicates")
         var demonstrativeStarters = sentenceOpeners.Count(s => DemonstrativeVerbStartRegex().IsMatch(s));
         var demonstrativeRate = (double)demonstrativeStarters / sentences.Count;
 
-        // Prepositional phrase sentence openers ("In conclusion", "As a result", "At the end of")
         var prepositionalStarters = sentenceOpeners.Count(s => PrepositionalOpenerRegex().IsMatch(s));
         var prepositionalRate = (double)prepositionalStarters / sentences.Count;
 
-        // Overall formulaic opener rate - what % of sentences start with any transitional structure
         var formulaicCount = conjunctiveStarters + demonstrativeStarters + prepositionalStarters + itIsPatternCount;
         var formulaicRate = (double)formulaicCount / sentences.Count;
 
-        // Score each signal
         var conjunctiveScore = conjunctiveRate switch
         {
             > 0.35 => 90,
@@ -111,19 +105,15 @@ public partial class TransitionalPhraseCheck : IAiCheck
         });
     }
 
-    // Sentences starting with conjunctive adverbs (closed word class, not specific phrases)
     [GeneratedRegex(@"^(furthermore|moreover|additionally|consequently|nevertheless|nonetheless|hence|therefore|thus|meanwhile|subsequently|likewise|similarly|conversely|alternatively|accordingly|regardless|otherwise)\b")]
     private static partial Regex ConjunctiveAdverbStartRegex();
 
-    // "It is/it's + adj + to" filler pattern - only match evaluative adjectives, not generic usage
     [GeneratedRegex(@"\bit(?:'s| is| was)\s+(?:important|worth|essential|crucial|necessary|noteworthy|notable|significant|vital|critical|interesting|relevant|useful|helpful|key)\s+(?:to |that )", RegexOptions.IgnoreCase)]
     private static partial Regex ItIsAdjectiveToRegex();
 
-    // "This/That + verb" demonstrative sentence starters
     [GeneratedRegex(@"^(this|that|these|those)\s+(means?|suggests?|indicates?|demonstrates?|shows?|implies?|highlights?|ensures?|provides?|creates?|leads?|allows?|enables?|makes?|results?)\b")]
     private static partial Regex DemonstrativeVerbStartRegex();
 
-    // Prepositional phrase openers ("In summary", "As a result", "On the whole", "At this point")
     [GeneratedRegex(@"^(in|on|at|as|for|by|from|with|to)\s+(a |an |the |this |that |any |some |general|summary|conclusion|addition|contrast|particular|other|order)\b")]
     private static partial Regex PrepositionalOpenerRegex();
 

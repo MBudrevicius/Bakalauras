@@ -62,25 +62,21 @@ public class FakeExternalApiHandler : HttpMessageHandler
             return Task.FromResult(HandleGoogleSafeBrowsingRequest());
         }
 
-        // Check for redirect simulation
         if (RedirectFromHost != null && url.Contains(RedirectFromHost))
         {
             return Task.FromResult(HandleRedirectRequest());
         }
 
-        // Check for mixed content simulation
         if (MixedContentHost != null && url.Contains(MixedContentHost))
         {
             return Task.FromResult(HandleMixedContentRequest());
         }
 
-        // Check for suspicious links simulation
         if (SuspiciousLinksHost != null && url.Contains(SuspiciousLinksHost))
         {
             return Task.FromResult(HandleSuspiciousLinksRequest());
         }
 
-        // For all other requests (security checks hitting target URLs), return a generic HTML page
         return Task.FromResult(HandleGenericRequest(request));
     }
 
@@ -92,7 +88,6 @@ public class FakeExternalApiHandler : HttpMessageHandler
 
         if (body.Contains("AI-generated text detector") && body.Contains("[0]"))
         {
-            // Segment analysis
             var lines = new StringBuilder();
             for (int i = 0; i < 20; i++)
                 lines.AppendLine($"[{i}] {AnthropicAiScore}");
@@ -100,23 +95,19 @@ public class FakeExternalApiHandler : HttpMessageHandler
         }
         else if (body.Contains("AI-generated text detector"))
         {
-            // Single text AI detection
             replyText = AnthropicAiScore.ToString();
         }
         else if (body.Contains("precision fact-checking assistant") || body.Contains("optimal search query"))
         {
-            // Topic extraction
             replyText = AnthropicTopic;
         }
         else if (body.Contains("expert fact-checker") || body.Contains("misinformation analyst"))
         {
-            // Credibility verification
             var claims = string.Join("\n", AnthropicClaims.Select(c => $"- {c}"));
             replyText = $"SCORE: {AnthropicCredibilityScore}\nVERDICT: {AnthropicCredibilityVerdict}\nCLAIMS:\n{claims}";
         }
         else if (body.Contains("source evaluator") || body.Contains("relevant and reliable"))
         {
-            // Source reliability evaluation
             var lines = new StringBuilder();
             for (int i = 0; i < AnthropicSourceReliabilityScores.Length; i++)
                 lines.AppendLine($"[{i}] {AnthropicSourceReliabilityScores[i]}");
@@ -246,7 +237,6 @@ public class FakeExternalApiHandler : HttpMessageHandler
 
     private static HttpResponseMessage HandleGenericRequest(HttpRequestMessage request)
     {
-        // Return a simple HTML page for security checks that fetch target URLs
         var html = """
             <html>
             <head><title>Test Page</title></head>
@@ -263,7 +253,6 @@ public class FakeExternalApiHandler : HttpMessageHandler
             Content = new StringContent(html, Encoding.UTF8, "text/html")
         };
 
-        // Add common security headers for SecurityHeadersCheck
         response.Headers.TryAddWithoutValidation("X-Content-Type-Options", "nosniff");
         response.Headers.TryAddWithoutValidation("X-Frame-Options", "DENY");
         response.Headers.TryAddWithoutValidation("Strict-Transport-Security", "max-age=31536000");
@@ -287,7 +276,6 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
-            // Remove EF/Npgsql registrations
             var toRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                 d.ServiceType == typeof(AppDbContext) ||
@@ -299,7 +287,6 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase(_dbName));
 
-            // Intercept all HttpClient requests - replace primary handler with our fake
             services.ConfigureAll<Microsoft.Extensions.Http.HttpClientFactoryOptions>(options =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(b =>
@@ -311,7 +298,6 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
-            // Provide a fake BraveSearch API key so the client doesn't short-circuit
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["BraveSearch:ApiKey"] = "fake-brave-api-key-for-testing"

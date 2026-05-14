@@ -58,13 +58,11 @@ public class RedirectChainCheck : ISecurityCheck
                 redirectCount++;
                 hops.Add(nextUri.ToString());
 
-                // HTTPS -> HTTP downgrade
                 if (currentUri.Scheme == Uri.UriSchemeHttps && nextUri.Scheme == Uri.UriSchemeHttp)
                 {
                     warnings.Add($"Redirect #{redirectCount} downgrades from HTTPS to HTTP");
                 }
 
-                // Cross-domain redirect
                 var nextHost = nextUri.Host.ToLowerInvariant();
                 if (!nextHost.Equals(originalHost, StringComparison.Ordinal) &&
                     !nextHost.EndsWith("." + originalHost, StringComparison.Ordinal))
@@ -72,7 +70,6 @@ public class RedirectChainCheck : ISecurityCheck
                     warnings.Add($"Redirect #{redirectCount} goes to a different domain ({nextHost})");
                 }
 
-                // Prevent SSRF via redirects
                 if (UrlValidator.IsPrivateOrReserved(nextUri))
                 {
                     warnings.Add($"Redirect #{redirectCount} points to a private/reserved address");

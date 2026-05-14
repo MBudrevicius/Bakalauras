@@ -32,14 +32,11 @@ try
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    // Services
     builder.Services.AddScoped<PageScoreStore>();
 
-    // Phishing brand configuration from appsettings
     builder.Services.Configure<PhishingSettings>(builder.Configuration.GetSection("Phishing"));
     builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PhishingSettings>>().Value);
 
-    // Register security checks
     builder.Services.AddTransient<ISecurityCheck, HttpsCheck>();
     builder.Services.AddTransient<ISecurityCheck, DomainAgeCheck>();
     builder.Services.AddTransient<ISecurityCheck, SuspiciousLinksCheck>();
@@ -51,7 +48,6 @@ try
     builder.Services.AddTransient<ISecurityCheck, MixedContentCheck>();
     builder.Services.AddTransient<SecurityCheckService>();
 
-    // Register AI checks
     builder.Services.AddTransient<IAiCheck, VocabularyRichnessCheck>();
     builder.Services.AddTransient<IAiCheck, SentenceUniformityCheck>();
     builder.Services.AddTransient<IAiCheck, PerplexityEstimationCheck>();
@@ -63,15 +59,12 @@ try
     builder.Services.AddTransient<IAiCheck, ClaudeAiModelCheck>();
     builder.Services.AddTransient<AiCheckService>();
 
-    // Clients
     builder.Services.AddSingleton<server.Helpers.HtmlTextExtractor>();
     builder.Services.AddTransient<server.Clients.AnthropicClient>();
     builder.Services.AddTransient<server.Clients.BraveSearchClient>();
 
-    // Cross-check
     builder.Services.AddTransient<CrossCheckService>();
 
-    // CORS for browser extension
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
@@ -86,7 +79,6 @@ try
 
     Log.Information("Starting ClearSource application...");
 
-    // Apply database migrations automatically (skip for InMemory testing)
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -107,7 +99,6 @@ try
         Log.Information("Swagger UI enabled for development");
     }
 
-    // Add request logging middleware
     app.UseRequestLogging();
 
     app.UseCors();
@@ -129,5 +120,4 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-// Make the implicit Program class public for WebApplicationFactory in tests
 public partial class Program { }

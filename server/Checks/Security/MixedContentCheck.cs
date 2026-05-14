@@ -47,14 +47,12 @@ public class MixedContentCheck : ISecurityCheck
             var activeCount = 0;
             var passiveCount = 0;
 
-            // Active mixed content (scripts, iframes, forms, objects)
             activeCount += CountHttpResources(doc, "//script[@src]", "src");
             activeCount += CountHttpResources(doc, "//iframe[@src]", "src");
             activeCount += CountHttpResources(doc, "//object[@data]", "data");
             activeCount += CountHttpResources(doc, "//embed[@src]", "src");
             activeCount += CountHttpForms(doc);
 
-            // Passive mixed content (images, audio, video)
             passiveCount += CountHttpResources(doc, "//img[@src]", "src");
             passiveCount += CountHttpResources(doc, "//audio[@src]", "src");
             passiveCount += CountHttpResources(doc, "//video[@src]", "src");

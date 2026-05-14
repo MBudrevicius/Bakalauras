@@ -57,7 +57,6 @@ public class SecurityHeadersCheckTests
         var handler = new MockHttpMessageHandler("", HttpStatusCode.OK);
         var check = CreateCheck(handler);
         var result = await check.RunAsync("https://example.com");
-        // 6 headers missing → severity should be Warning (>=4 missing)
         Assert.Equal(SecurityCheckSeverity.Warning, result.Severity);
         Assert.Contains("Missing", result.Description);
     }
@@ -74,7 +73,6 @@ public class SecurityHeadersCheckTests
             });
         var check = CreateCheck(handler);
         var result = await check.RunAsync("https://example.com");
-        // 3 missing (< 4), so Info
         Assert.Equal(SecurityCheckSeverity.Info, result.Severity);
     }
 

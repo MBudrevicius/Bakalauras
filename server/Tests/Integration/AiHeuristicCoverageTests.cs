@@ -148,7 +148,6 @@ public class AiHeuristicCoverageTests : IClassFixture<IntegrationTestFactory>
     [Fact]
     public async Task AiChecks_UniformSentenceLengths_TriggersUniformityBranches()
     {
-        // Create sentences with very similar word counts (~15 words each)
         var text = "The quick brown fox jumped gracefully over the lazy sleeping dog today. " +
                    "Modern technology has transformed the way people communicate with each other daily. " +
                    "Scientists discovered a new species of deep sea creatures last week unexpectedly. " +
@@ -191,7 +190,6 @@ public class AiHeuristicCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
         Assert.NotNull(result);
-        // Human-like text should score relatively low on AI detection
         Assert.True(result.OverallAiScore < 60, $"Natural text should score low, got {result.OverallAiScore}");
     }
 
@@ -224,7 +222,6 @@ public class AiHeuristicCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.NotEmpty(result.HeuristicResults);
         Assert.InRange(result.AverageAiScore, 0, 100);
 
-        // Verify each model result
         foreach (var mr in result.ModelResults)
         {
             Assert.NotEmpty(mr.Model);
@@ -296,7 +293,6 @@ public class AiHeuristicCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
         Assert.NotNull(result);
-        // The fake handler returns HTML with "Test Content" text
         Assert.True(result.TextLength > 0);
     }
 
@@ -343,7 +339,6 @@ public class AiHeuristicCoverageTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
         Assert.NotNull(result);
-        // This highly formulaic text should score high overall
         Assert.True(result.OverallAiScore >= 30, $"Combined AI patterns should score meaningfully, got {result.OverallAiScore}");
     }
 }

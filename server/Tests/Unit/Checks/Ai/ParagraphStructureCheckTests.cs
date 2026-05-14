@@ -20,7 +20,6 @@ public class ParagraphStructureCheckTests
     [Fact]
     public async Task RunAsync_UniformParagraphs_ReturnsHigherScore()
     {
-        // All paragraphs of similar length — AI pattern
         var text = "The first paragraph discusses the initial findings of the research study conducted last year.\n\n" +
                    "The second paragraph explores the methodology used in the comprehensive data analysis process.\n\n" +
                    "The third paragraph examines the results obtained from the controlled experimental group participants.\n\n" +

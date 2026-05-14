@@ -18,7 +18,6 @@ public class DomainAgeCheckTests
         return (string)method.Invoke(null, [host])!;
     }
 
-    // ParseCreationDate tests
     [Fact]
     public void ParseCreationDate_IsoFormat_Parses()
     {
@@ -86,7 +85,6 @@ public class DomainAgeCheckTests
         Assert.Equal(2020, result!.Value.Year);
     }
 
-    // ExtractRegistrableDomain tests
     [Theory]
     [InlineData("www.example.com", "example.com")]
     [InlineData("sub.domain.example.com", "example.com")]

@@ -41,9 +41,7 @@ public class SslCertificateCheckTests
     [Fact]
     public async Task RunAsync_ValidHttpsSite_ReturnsCertInfo()
     {
-        // Test against a real public site with a valid SSL cert
         var result = await _check.RunAsync("https://example.com");
-        // Should be Pass (valid cert) or Info (if network issues)
         Assert.True(result.Severity == SecurityCheckSeverity.Pass || result.Severity == SecurityCheckSeverity.Info);
         Assert.NotEmpty(result.Description);
     }

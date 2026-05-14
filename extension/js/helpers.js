@@ -1,4 +1,3 @@
-// Severity metadata
 export const severityMeta = {
   Pass:    { cls: "severity-pass",    icon: "✓" },
   Info:    { cls: "severity-info",    icon: "i" },
@@ -6,7 +5,6 @@ export const severityMeta = {
 };
 export const severityMap = { 0: "Pass", 1: "Info", 2: "Warning" };
 
-// ═══ Loading Spinner ═══
 export function showLoading(message = "Processing…") {
   const overlay = document.getElementById("loading-overlay");
   const text = document.getElementById("loading-text");
@@ -21,7 +19,6 @@ export function hideLoading() {
   if (overlay) overlay.classList.add("hidden");
 }
 
-// ═══ Error Modal ═══
 export function showErrorModal(message) {
   const overlay = document.getElementById("error-modal-overlay");
   const msgEl = document.getElementById("error-modal-message");
@@ -39,7 +36,6 @@ export function showErrorModal(message) {
   }, { once: true });
 }
 
-// Score colour helpers
 export function secScoreClass(s) {
   if (s >= 80) return "score-green";
   if (s >= 60) return "score-yellow";
@@ -61,7 +57,6 @@ export function aiBarColor(s) {
   return "#e74c3c";
 }
 
-// Mini-score colouring - isAi: higher = worse, !isAi: higher = better
 export function miniScoreClass(s, isAi) {
   if (isAi) {
     if (s < 30) return "good";
@@ -86,7 +81,6 @@ export function esc(str) {
   return d.innerHTML;
 }
 
-// Update the page scores bar
 export function updateTopScores({ securityScore, credibilityScore, aiScore, securityCheckCount, credibilityCheckCount, aiCheckCount } = {}) {
   const section  = document.getElementById("stored-scores-section");
   const secEl    = document.getElementById("stored-sec-score");
@@ -120,13 +114,11 @@ export function updateTopScores({ securityScore, credibilityScore, aiScore, secu
   section.classList.remove("hidden");
 }
 
-// Fetch stored scores from server (with session cache)
 export async function fetchStoredScores(url, forceRefresh = false) {
   const section = document.getElementById("stored-scores-section");
   const loading = document.getElementById("scores-loading");
   const content = document.getElementById("scores-content");
 
-  // Try session cache first
   if (!forceRefresh) {
     const { cachedScores } = await chrome.storage.session.get("cachedScores");
     if (cachedScores && cachedScores.url === url && cachedScores.data) {

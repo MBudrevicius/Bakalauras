@@ -25,7 +25,6 @@ public class VocabularyRichnessBranchTests
         return (double)method.Invoke(null, [words, window])!;
     }
 
-    // CalculateMattrScore tests
     [Fact]
     public void MattrScore_CenterOfAiRange_HighScore()
     {
@@ -68,7 +67,6 @@ public class VocabularyRichnessBranchTests
         Assert.Equal(0, score);
     }
 
-    // CalculateHapaxScore tests
     [Fact]
     public void HapaxScore_MiddleRange_Returns70()
     {
@@ -79,7 +77,6 @@ public class VocabularyRichnessBranchTests
     [Fact]
     public void HapaxScore_LowRatio_HigherScore()
     {
-        // Low hapax = AI-like reuse
         var score = InvokeCalculateHapaxScore(0.10);
         Assert.True(score > 70, $"Low hapax ratio should be >70, got {score}");
     }
@@ -105,13 +102,11 @@ public class VocabularyRichnessBranchTests
         Assert.Equal(0.0, score);
     }
 
-    // CalculateMattr tests
     [Fact]
     public void CalculateMattr_ShortList_FallsBackToTTR()
     {
         var words = new List<string> { "the", "cat", "sat", "on", "the" };
         var mattr = InvokeCalculateMattr(words, 50);
-        // 4 unique / 5 total = 0.8
         Assert.Equal(0.8, mattr, 2);
     }
 

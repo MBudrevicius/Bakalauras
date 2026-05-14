@@ -12,7 +12,6 @@ public partial class SuspiciousLinksCheck : ISecurityCheck
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<SuspiciousLinksCheck> _logger;
 
-    // TLDs frequently used in phishing / malware
     private static readonly HashSet<string> SuspiciousTlds = new(StringComparer.OrdinalIgnoreCase)
     {
         ".tk", ".ml", ".ga", ".cf", ".gq", ".top", ".xyz", ".buzz", ".club", ".work", ".click", ".loan", ".download", ".racing", ".win", ".bid", ".stream", ".gdn", ".icu", ".monster"
@@ -59,7 +58,6 @@ public partial class SuspiciousLinksCheck : ISecurityCheck
         var mismatchCount = 0;
         var externalLinks = 0;
 
-        // Find all anchor tags and elements with href/src
         var linkNodes = doc.DocumentNode.SelectNodes("//a[@href] | //link[@href] | //script[@src] | //iframe[@src]");
         if (linkNodes is null)
         {
@@ -85,19 +83,16 @@ public partial class SuspiciousLinksCheck : ISecurityCheck
                 externalLinks++;
             }
 
-            // Hidden links: display:none, visibility:hidden, opacity:0, tiny size
             if (IsHiddenElement(node))
             {
                 hiddenCount++;
             }
 
-            // Links to suspicious TLDs
             if (HasSuspiciousTld(linkHost))
             {
                 suspiciousTldCount++;
             }
 
-            // Mismatched anchor text vs actual URL
             if (node.Name == "a")
             {
                 var displayText = node.InnerText?.Trim() ?? "";

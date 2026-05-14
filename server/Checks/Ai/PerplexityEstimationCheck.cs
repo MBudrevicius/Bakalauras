@@ -24,7 +24,6 @@ public partial class PerplexityEstimationCheck : IAiCheck
             });
         }
 
-        // Bigram analysis - predictable text reuses word transitions
         var bigramCounts = new Dictionary<string, int>();
         for (var i = 0; i < words.Count - 1; i++)
         {
@@ -40,7 +39,6 @@ public partial class PerplexityEstimationCheck : IAiCheck
         var repeatedBigrams = bigramCounts.Count(kv => kv.Value > 1);
         var repetitionRate = (double)repeatedBigrams / uniqueBigrams;
 
-        // Trigram analysis - longer repeated sequences are a stronger AI signal
         var trigramCounts = new Dictionary<string, int>();
         for (var i = 0; i < words.Count - 2; i++)
         {
@@ -53,8 +51,6 @@ public partial class PerplexityEstimationCheck : IAiCheck
         var uniqueTrigrams = trigramCounts.Count;
         var trigramTtr = (double)uniqueTrigrams / totalTrigrams;
 
-        // Entropy estimation via bigram surprisal
-        // Lower entropy = more predictable = more AI-like
         var entropy = 0.0;
         foreach (var kv in bigramCounts)
         {

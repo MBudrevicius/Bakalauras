@@ -68,7 +68,6 @@ public class AiCheckService
         var claude = results.FirstOrDefault(r => r.Type == AiCheckType.ClaudeAiModel && r.AiScore > 0);
         var others = results.Where(r => r.Type != AiCheckType.ClaudeAiModel && r.AiScore > 0).ToList();
 
-        // Weight heuristic checks by reliability rather than averaging equally
         var checkWeights = new Dictionary<AiCheckType, double>
         {
             { AiCheckType.SentenceUniformity, 1.2 },
@@ -113,11 +112,9 @@ public class AiCheckService
             return new AllModelsAiCheckResponse { TextLength = 0 };
         }
 
-        // Run heuristic checks once
         var heuristicChecks = _checks.Where(c => c.Type != AiCheckType.ClaudeAiModel);
         var heuristicResults = await Task.WhenAll(heuristicChecks.Select(c => c.RunAsync(text)));
 
-        // Run Claude with all 3 models in parallel
         var models = new[]
         {
             ("claude-haiku-4-5-20251001", "Haiku 4.5"),

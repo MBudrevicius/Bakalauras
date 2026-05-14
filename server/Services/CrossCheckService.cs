@@ -32,7 +32,6 @@ public class CrossCheckService
             relatedPages = await SearchRelatedPagesAsync(topic, url);
         }
 
-        // Evaluate source reliability (do sources actually match the article topic?)
         var sourceReliability = new List<SourceReliability>();
         if (!string.IsNullOrWhiteSpace(claudeApiKey) && !string.IsNullOrWhiteSpace(text) && relatedPages.Count > 0)
         {
@@ -44,7 +43,6 @@ public class CrossCheckService
             sourceReliability = await _anthropic.EvaluateSourceReliabilityAsync(claudeApiKey, text, snippets, claudeModel);
         }
 
-        // Only use reliable sources (score >= 50) for credibility verification
         CredibilityResult? credibility = null;
         if (!string.IsNullOrWhiteSpace(claudeApiKey) && !string.IsNullOrWhiteSpace(text) && relatedPages.Count > 0)
         {
@@ -68,7 +66,6 @@ public class CrossCheckService
             }
         }
 
-        // Source diversity: analyze links found ON the page itself
         var (pageLinkDomains, pageLinkSamples) = AnalyzePageLinks(pageLinks, url);
 
         var response = new CrossCheckResponse
@@ -92,7 +89,6 @@ public class CrossCheckService
 
     public async Task<CrossCheckResponse> CrossCheckAllModelsAsync(string url, string title, string text, List<string> pageLinks, string claudeApiKey)
     {
-        // Use best model for topic extraction
         var topic = await _anthropic.ExtractTopicAsync(claudeApiKey, text, "claude-sonnet-4-6");
         topic ??= CleanTitle(title);
 
@@ -102,7 +98,6 @@ public class CrossCheckService
             relatedPages = await SearchRelatedPagesAsync(topic, url);
         }
 
-        // Evaluate source reliability with best model
         var sourceReliability = new List<SourceReliability>();
         List<SourceSnippet> reliableSources = [];
         if (!string.IsNullOrWhiteSpace(text) && relatedPages.Count > 0)
@@ -129,7 +124,6 @@ public class CrossCheckService
                 .ToList();
         }
 
-        // Run credibility with all 3 models in parallel
         var models = new[]
         {
             ("claude-haiku-4-5-20251001", "Haiku 4.5"),
@@ -153,13 +147,11 @@ public class CrossCheckService
             modelResults = [.. await Task.WhenAll(tasks)];
         }
 
-        // Average credibility across models
         var validScores = modelResults.Where(m => m.Credibility != null).Select(m => m.Credibility!.Score).ToList();
         CredibilityResult? avgCredibility = null;
         if (validScores.Count > 0)
         {
             var avgScore = (int)Math.Round(validScores.Average());
-            // Use the verdict from the median-scoring model
             var medianModel = modelResults
                 .Where(m => m.Credibility != null)
                 .OrderBy(m => m.Credibility!.Score)
@@ -213,7 +205,6 @@ public class CrossCheckService
                 continue;
 
             var host = linkUri.Host.ToLowerInvariant();
-            // Skip same domain, common social/navigation links
             if (host == originalDomain)
                 continue;
             if (IsCommonNonSourceDomain(host))

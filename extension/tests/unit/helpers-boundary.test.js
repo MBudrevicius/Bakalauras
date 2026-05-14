@@ -1,11 +1,4 @@
-const {
-  secScoreClass,
-  aiScoreClass,
-  aiBarColor,
-  miniScoreClass,
-} = require("./helper-functions");
-
-// Boundary value testing for all classification functions
+import { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } from "./helper-functions";
 
 describe("secScoreClass - boundary values", () => {
   test.each([
@@ -54,7 +47,6 @@ describe("aiBarColor - boundary values", () => {
 });
 
 describe("miniScoreClass - all boundary values", () => {
-  // AI mode boundaries
   test.each([
     [0, true, "good"],
     [29, true, "good"],
@@ -68,7 +60,6 @@ describe("miniScoreClass - all boundary values", () => {
     expect(miniScoreClass(score, isAi)).toBe(expected);
   });
 
-  // Security mode boundaries
   test.each([
     [100, false, "good"],
     [80, false, "good"],

@@ -101,7 +101,6 @@ public class AiCheckServiceRunAllModelsTests
         var request = new AiCheckRequest { Text = "Text for testing" };
         var response = await service.RunAllModelsAsync(request, "sk-test");
 
-        // Heuristic results should only include non-Claude checks
         Assert.Single(response.HeuristicResults);
         Assert.Equal(AiCheckType.VocabularyRichness, response.HeuristicResults[0].Type);
         db.Dispose();
@@ -144,11 +143,9 @@ public class AiCheckServiceRunAllModelsTests
         db.Dispose();
     }
 
-    // AnalyzeSegmentsAsync with Claude blending
     [Fact]
     public async Task AnalyzeSegmentsAsync_WithClaudeApiKey_BlendsScores()
     {
-        // Claude returns segment scores via DetectAiSegmentsAsync
         var response = AnthropicJsonResponse("[0] 80");
         var handler = new MockHttpMessageHandler(response);
 
@@ -163,7 +160,6 @@ public class AiCheckServiceRunAllModelsTests
             ["This is a paragraph with more than five words for testing"], "sk-test");
 
         Assert.Single(scores);
-        // Blended: claude * 0.6 + heuristic * 0.4 = 80 * 0.6 + 60 * 0.4 = 72
         Assert.Equal(72, scores[0]);
         db.Dispose();
     }
@@ -185,7 +181,6 @@ public class AiCheckServiceRunAllModelsTests
             ["This is a paragraph with more than five words for testing"], "sk-test");
 
         Assert.Single(scores);
-        // Claude score is 0, so uses heuristic only
         Assert.Equal(50, scores[0]);
         db.Dispose();
     }
@@ -193,7 +188,6 @@ public class AiCheckServiceRunAllModelsTests
     [Fact]
     public async Task RunAllModelsAsync_EmptyTextWithUrl_ExtractsFromUrl()
     {
-        // The handler returns HTML for the text extraction, and then Anthropic JSON for AI detection
         var html = "<html><body><p>Extracted text from web page for analysis</p></body></html>";
         var multiHandler = new DelegatingMockHandler(request =>
         {

@@ -14,8 +14,6 @@ public class AnthropicClientAsyncTests
             content = new[] { new { text } }
         });
 
-    // --- SendMessageAsync (tested indirectly) ---
-
     [Fact]
     public async Task DetectAiTextAsync_ValidResponse_ReturnsScore()
     {
@@ -63,7 +61,6 @@ public class AnthropicClientAsyncTests
         await client.DetectAiTextAsync("sk-test", longText);
 
         var body = await handler.LastRequest!.Content!.ReadAsStringAsync();
-        // The prompt should not contain the full 5000 chars - it should be truncated to 4000
         Assert.DoesNotContain(new string('a', 5000), body);
     }
 
@@ -119,8 +116,6 @@ public class AnthropicClientAsyncTests
         Assert.Contains("claude-haiku-4-5-20251001", body);
     }
 
-    // --- DetectAiSegmentsAsync ---
-
     [Fact]
     public async Task DetectAiSegmentsAsync_EmptySegments_ReturnsNull()
     {
@@ -172,11 +167,8 @@ public class AnthropicClientAsyncTests
         await client.DetectAiSegmentsAsync("sk-test", [longSegment]);
 
         var body = await handler.LastRequest!.Content!.ReadAsStringAsync();
-        // Segment truncated to 300 chars
         Assert.DoesNotContain(new string('x', 500), body);
     }
-
-    // --- ExtractTopicAsync ---
 
     [Fact]
     public async Task ExtractTopicAsync_ValidResponse_ReturnsTopic()
@@ -222,8 +214,6 @@ public class AnthropicClientAsyncTests
         var topic = await client.ExtractTopicAsync("sk-test", "Some article text here for analysis");
         Assert.Equal("some topic", topic);
     }
-
-    // --- VerifyCredibilityAsync ---
 
     [Fact]
     public async Task VerifyCredibilityAsync_EmptySources_ReturnsNull()
@@ -295,8 +285,6 @@ public class AnthropicClientAsyncTests
         Assert.DoesNotContain(new string('b', 500), body);
     }
 
-    // --- EvaluateSourceReliabilityAsync ---
-
     [Fact]
     public async Task EvaluateSourceReliabilityAsync_EmptySources_ReturnsEmpty()
     {
@@ -361,7 +349,6 @@ public class AnthropicClientAsyncTests
     [Fact]
     public async Task EvaluateSourceReliabilityAsync_NullScores_ReturnsEmpty()
     {
-        // Response that can't be parsed as segment scores
         var handler = new MockHttpMessageHandler(AnthropicJsonResponse("no valid scores here"));
         var factory = new MockHttpClientFactory(handler);
         var client = new AnthropicClient(factory);
@@ -369,7 +356,6 @@ public class AnthropicClientAsyncTests
         var sources = new List<SourceSnippet> { new() { Title = "S", Snippet = "s" } };
         var result = await client.EvaluateSourceReliabilityAsync("sk-test", "text", sources);
 
-        // ParseSegmentScores returns array of zeros, not null, so this should still work
         Assert.Single(result);
         Assert.Equal(0, result[0].Score);
     }

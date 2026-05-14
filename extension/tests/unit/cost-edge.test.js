@@ -1,9 +1,4 @@
-const {
-  estimateAiScanCost,
-  estimateCrossCheckCost,
-  formatCost,
-  MODEL_PRICING,
-} = require("./cost-functions");
+import { estimateAiScanCost, estimateCrossCheckCost, formatCost, MODEL_PRICING } from "./cost-functions";
 
 describe("estimateAiScanCost - edge cases", () => {
   test("zero text length returns zero-cost base (no detection)", () => {
@@ -74,7 +69,6 @@ describe("estimateCrossCheckCost - edge cases", () => {
   test("all three models produce different costs", () => {
     const models = Object.keys(MODEL_PRICING);
     const costs = models.map((m) => estimateCrossCheckCost(1000, m).total);
-    // Each model should differ
     expect(new Set(costs).size).toBe(3);
   });
 
@@ -95,7 +89,6 @@ describe("formatCost - edge cases", () => {
   });
 
   test("negative cost (edge case) returns < $0.001", () => {
-    // Negative cost shouldn't happen in practice, but the < 0.001 guard catches it
     expect(formatCost(-0.5)).toBe("< $0.001");
   });
 });

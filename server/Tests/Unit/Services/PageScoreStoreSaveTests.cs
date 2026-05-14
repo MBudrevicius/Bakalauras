@@ -47,7 +47,6 @@ public class PageScoreStoreSaveTests
 
         var record = await db.PageScores.FirstOrDefaultAsync(p => p.Domain == "example.com");
         Assert.NotNull(record);
-        // (60 * 1 + 80) / 2 = 70
         Assert.Equal(70, record.SecurityScore);
         Assert.Equal(2, record.SecurityCheckCount);
         Assert.Equal(2, record.CheckCount);
@@ -106,9 +105,7 @@ public class PageScoreStoreSaveTests
     {
         var (store, db) = CreateStore();
 
-        // First save with security
         await store.SavePageScoreAsync("https://example.com", securityScore: 80, credibilityScore: null, aiScore: null);
-        // Second save with credibility only
         await store.SavePageScoreAsync("https://example.com", securityScore: null, credibilityScore: 70, aiScore: null);
 
         var record = await db.PageScores.FirstOrDefaultAsync(p => p.Domain == "example.com");

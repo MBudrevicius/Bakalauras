@@ -1,4 +1,3 @@
-// Pure functions extracted from info.js for testing
 
 function computeCoverageScore(reliableSourceCount) {
   if (reliableSourceCount >= 5) return 100;

@@ -15,7 +15,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
 
   let lastCrossCheckData = null;
 
-  // API key - synced with AI tab via shared storage
   const apiKeyInput  = document.getElementById("info-claude-api-key");
   const apiKeyToggle = document.getElementById("info-api-key-toggle");
   const useAiChk     = document.getElementById("info-use-ai-chk");
@@ -60,7 +59,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
     apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
   });
 
-  // Model selector - synced with AI tab
   const modelSelect = document.getElementById("info-claude-model");
   const { claudeModel } = await chrome.storage.local.get("claudeModel");
   if (claudeModel) modelSelect.value = claudeModel;
@@ -79,7 +77,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
     }
   });
 
-  // Restore saved cross-check state
   chrome.storage.session.get("infoState", ({ infoState }) => {
     if (infoState?.url === getCurrentUrl() && infoState.data) {
       lastCrossCheckData = infoState.data;
@@ -220,7 +217,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
     const sourceReliability = Array.isArray(data.sourceReliability) ? data.sourceReliability : [];
     const pageLinkDomains = data.pageLinkDomains || 0;
 
-    // Calculate sub-scores
     const reliableSourceCount = sourceReliability.filter(s => s.score >= 50).length;
     const coverageScore = reliableSourceCount >= 5 ? 100 : reliableSourceCount >= 3 ? 70 : reliableSourceCount > 0 ? 40 : 0;
     const diversityScore = pageLinkDomains >= 5 ? 100 : pageLinkDomains >= 3 ? 70 : pageLinkDomains > 0 ? 40 : 0;
@@ -229,15 +225,12 @@ export async function initInfo(getWebTab, getCurrentUrl) {
       ? Math.round(credScore * 0.6 + coverageScore * 0.2 + diversityScore * 0.2)
       : Math.round(coverageScore * 0.5 + diversityScore * 0.5);
 
-    // Show score circle
     infoScoreValue.textContent = overallScore;
     infoScoreCircle.className = "score-circle " + secScoreClass(overallScore);
     infoScoreSection.classList.remove("hidden");
 
-    // Build results list with bar UI
     infoResultsList.innerHTML = "";
 
-    // 1. AI Credibility Assessment (FIRST - most important)
     const claims = data.credibility?.claims || [];
     const hasCredibility = credScore != null && (credScore > 0 || (data.credibility?.verdict && data.credibility.verdict !== "Unknown"));
     const aiDesc = !hasCredibility
@@ -274,7 +267,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
       detailHtml: credDetailHtml,
     });
 
-    // 2. Source Coverage — with reliability scores
     const covSev = reliableSourceCount >= 5 ? "Pass" : reliableSourceCount >= 3 ? "Info" : "Warning";
     const covDesc = pages.length > 0
       ? `Found ${pages.length} sources, ${reliableSourceCount} verified as relevant.`
@@ -288,7 +280,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
       detailHtml: renderRelatedPagesWithReliability(pages, sourceReliability),
     });
 
-    // 3. Source Diversity (links IN the page)
     const divDesc = pageLinkDomains > 0
       ? `Article references ${pageLinkDomains} unique external domain(s).`
       : "No external source links found in the article.";
@@ -300,7 +291,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
       expandable: (data.pageLinkSamples || []).length > 0,
       detailHtml: renderPageLinksHtml(data.pageLinkSamples || []),
     });
-
 
   }
 
@@ -352,7 +342,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
       const rel = reliability[idx];
       const relScore = rel ? rel.score : null;
       const relColor = relScore != null ? infoBarColor(relScore) : "#6b7394";
-      const relLabel = relScore != null ? `Relevance: ${relScore}/100` : "";
       return `
       <div class="related-item">
         <div style="display:flex; justify-content:space-between; align-items:center">
@@ -428,7 +417,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
         "X-Claude-Model": modelSelect.value
       };
 
-      // Build sources from cross-check data (reliable sources only)
       const reliability = Array.isArray(data.sourceReliability) ? data.sourceReliability : [];
       const relatedPages = Array.isArray(data.relatedPages) ? data.relatedPages : [];
       const sources = relatedPages
@@ -468,7 +456,6 @@ export async function initInfo(getWebTab, getCurrentUrl) {
         func: clearHighlight
       });
     } catch {
-      // Ignore if the target tab is inaccessible or closed.
     }
   }
 }

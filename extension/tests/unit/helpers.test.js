@@ -1,10 +1,4 @@
-const {
-  secScoreClass,
-  aiScoreClass,
-  aiBarColor,
-  miniScoreClass,
-  severityMap,
-} = require("./helper-functions");
+import { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass, severityMap } from "./helper-functions";
 
 describe("secScoreClass", () => {
   test("returns score-green for scores >= 80", () => {

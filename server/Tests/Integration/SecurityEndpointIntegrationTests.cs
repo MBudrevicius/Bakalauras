@@ -63,7 +63,6 @@ public class SecurityEndpointIntegrationTests : IClassFixture<IntegrationTestFac
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
 
-        // Assert - verify the score was stored
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var domain = new Uri(url).Host.ToLowerInvariant();
@@ -78,13 +77,11 @@ public class SecurityEndpointIntegrationTests : IClassFixture<IntegrationTestFac
     {
         var url = "https://rolling-" + Guid.NewGuid().ToString("N")[..8] + ".com";
 
-        // Act - run checks twice on the same URL
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
 
-        // Assert - check count should be 2
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var domain = new Uri(url).Host.ToLowerInvariant();
@@ -102,7 +99,6 @@ public class SecurityEndpointIntegrationTests : IClassFixture<IntegrationTestFac
             new SecurityCheckRequest { Url = "https://example.com" });
         var result = await response.Content.ReadFromJsonAsync<SecurityCheckResponse>();
 
-        // Assert - verify the score matches the severity-based formula
         Assert.NotNull(result);
         var expectedScore = 0;
         foreach (var r in result.Results)
@@ -137,7 +133,6 @@ public class SecurityEndpointIntegrationTests : IClassFixture<IntegrationTestFac
         var response = await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = "https://example.com/path?q=hello&lang=en#section" });
 
-        // Assert - should still process correctly
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<SecurityCheckResponse>();
         Assert.NotNull(result);

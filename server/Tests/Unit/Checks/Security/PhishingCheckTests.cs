@@ -80,7 +80,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_Typosquatting_DetectsLookalike()
     {
-        // "g00gle" looks like "google" via leet speak
         var result = await _check.RunAsync("https://g00gle.com/login");
 
         Assert.Equal(SecurityCheckSeverity.Warning, result.Severity);
@@ -90,7 +89,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_TyposquattingCloseSpelling_DetectsLookalike()
     {
-        // "gooogle" is edit distance 1 from "google"
         var result = await _check.RunAsync("https://gooogle.com/login");
 
         Assert.Equal(SecurityCheckSeverity.Warning, result.Severity);
@@ -125,7 +123,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_ExactBrandMatch_ReturnsPass()
     {
-        // Exact brand match should NOT be flagged as typosquatting
         var result = await _check.RunAsync("https://google.com");
 
         Assert.Equal(SecurityCheckSeverity.Pass, result.Severity);
@@ -134,7 +131,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_DoubleProtocol_DetectsSuspicious()
     {
-        // URL with embedded protocol after the initial https://
         var result = await _check.RunAsync("https://example.com/redirect?url=http://evil.com");
         Assert.Contains("protocol", result.Description);
     }
@@ -142,7 +138,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_LeetSpeakBrand_DetectsTyposquatting()
     {
-        // "fac3book" → normalizes to "facebook" which is close to "facebook"
         var result = await _check.RunAsync("https://fac3book.com/login");
         Assert.Equal(SecurityCheckSeverity.Warning, result.Severity);
     }
@@ -150,7 +145,6 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_MultipleSeverities_WarningIfMultiple()
     {
-        // Long URL + excessive subdomains → 2+ warnings → Warning severity
         var longPath = new string('x', 200);
         var result = await _check.RunAsync($"https://a.b.c.d.evil.com/{longPath}");
         Assert.Equal(SecurityCheckSeverity.Warning, result.Severity);
@@ -159,9 +153,7 @@ public class PhishingCheckTests
     [Fact]
     public async Task RunAsync_SingleInfoWarning_ReturnsInfo()
     {
-        // Only excessive subdomains detected → single warning, no highSeverity → Info
         var result = await _check.RunAsync("https://a.b.c.d.example.com/");
-        // subdomains only → Info level (not highSeverity, count=1)
         Assert.Equal(SecurityCheckSeverity.Info, result.Severity);
     }
 }

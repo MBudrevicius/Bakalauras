@@ -1,5 +1,4 @@
 using server.Helpers;
-using server.Tests.Unit.Helpers;
 
 namespace server.Tests.Unit.Helpers;
 
@@ -11,7 +10,6 @@ public class HtmlTextExtractorAsyncTests
         return new HtmlTextExtractor(factory);
     }
 
-    // ExtractTextFromUrl tests
     [Fact]
     public async Task ExtractTextFromUrl_ValidHtml_ReturnsText()
     {
@@ -30,7 +28,6 @@ public class HtmlTextExtractorAsyncTests
         Assert.Equal("", result);
     }
 
-    // ExtractLinksFromUrl tests
     [Fact]
     public async Task ExtractLinksFromUrl_ValidHtml_ReturnsExternalLinks()
     {
@@ -64,7 +61,6 @@ public class HtmlTextExtractorAsyncTests
         var html = """<html><body><a href="/page">Relative</a></body></html>""";
         var extractor = CreateExtractor(new MockHttpMessageHandler(html));
         var links = await extractor.ExtractLinksFromUrl("https://example.com");
-        // Relative link to same domain → filtered out
         Assert.Empty(links);
     }
 

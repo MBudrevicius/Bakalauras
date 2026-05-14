@@ -38,11 +38,9 @@ public class PageScoreIntegrationTests : IClassFixture<IntegrationTestFactory>
     {
         var url = "https://score-retrieve-" + Guid.NewGuid().ToString("N")[..8] + ".com";
 
-        // Act - first, run a security check to populate the score
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
 
-        // Then retrieve the score
         var response = await _client.GetAsync($"/api/page-score?url={Uri.EscapeDataString(url)}");
 
         // Assert
@@ -57,13 +55,11 @@ public class PageScoreIntegrationTests : IClassFixture<IntegrationTestFactory>
         var url = "https://aggregate-" + Guid.NewGuid().ToString("N")[..8] + ".com";
         var text = "Test content for aggregation of scores across different analysis types.";
 
-        // Act - run both security and AI checks
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
         await _client.PostAsJsonAsync("/api/ai-checks",
             new AiCheckRequest { Text = text, Url = url });
 
-        // Assert - both scores should be present
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var domain = new Uri(url).Host.ToLowerInvariant();
@@ -92,13 +88,11 @@ public class PageScoreIntegrationTests : IClassFixture<IntegrationTestFactory>
         var url1 = $"https://{domain}/article1";
         var url2 = $"https://{domain}/article2";
 
-        // Act - run checks on two different paths of the same domain
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url1 });
         await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url2 });
 
-        // Assert - should share the same PageScore record (domain-based)
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var records = db.PageScores.Where(p => p.Domain == domain).ToList();
@@ -112,7 +106,6 @@ public class PageScoreIntegrationTests : IClassFixture<IntegrationTestFactory>
         var domain = "preseeded-" + Guid.NewGuid().ToString("N")[..8] + ".com";
         var url = $"https://{domain}/page";
 
-        // Seed the DB directly
         await _factory.SeedDatabaseAsync(db =>
         {
             db.PageScores.Add(new PageScore

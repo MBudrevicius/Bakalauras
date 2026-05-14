@@ -18,7 +18,6 @@ public class PageScoreStoreTests
         return (int)method.Invoke(null, [ownScore, relatedScores])!;
     }
 
-    // ExtractDomain tests
     [Theory]
     [InlineData("https://www.example.com/page", "www.example.com")]
     [InlineData("http://example.com", "example.com")]
@@ -46,7 +45,6 @@ public class PageScoreStoreTests
         Assert.Equal("example.com", InvokeExtractDomain("  https://example.com  "));
     }
 
-    // CalculatePageWithRelatedPagesScore tests
     [Fact]
     public void CalculateScore_NoRelated_ReturnsOwnScore()
     {
@@ -56,8 +54,6 @@ public class PageScoreStoreTests
     [Fact]
     public void CalculateScore_WithRelated_Blends90_10()
     {
-        // Own=80, Related avg=60
-        // 80*0.9 + 60*0.1 = 72 + 6 = 78
         var score = InvokeCalculatePageWithRelatedPagesScore(80, [60, 60]);
         Assert.Equal(78, score);
     }
@@ -65,8 +61,6 @@ public class PageScoreStoreTests
     [Fact]
     public void CalculateScore_HighRelated_IncreasesSlightly()
     {
-        // Own=50, Related avg=100
-        // 50*0.9 + 100*0.1 = 45 + 10 = 55
         var score = InvokeCalculatePageWithRelatedPagesScore(50, [100, 100]);
         Assert.Equal(55, score);
     }
@@ -74,8 +68,6 @@ public class PageScoreStoreTests
     [Fact]
     public void CalculateScore_LowRelated_DecreasesSlightly()
     {
-        // Own=80, Related avg=0
-        // 80*0.9 + 0*0.1 = 72
         var score = InvokeCalculatePageWithRelatedPagesScore(80, [0, 0]);
         Assert.Equal(72, score);
     }
@@ -83,8 +75,6 @@ public class PageScoreStoreTests
     [Fact]
     public void CalculateScore_SingleRelated_CorrectBlend()
     {
-        // Own=100, Related=50
-        // 100*0.9 + 50*0.1 = 90 + 5 = 95
         var score = InvokeCalculatePageWithRelatedPagesScore(100, [50]);
         Assert.Equal(95, score);
     }

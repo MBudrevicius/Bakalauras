@@ -21,7 +21,6 @@ public class RequestLoggingMiddleware
         var path = context.Request.Path;
         var queryString = context.Request.QueryString.ToString();
 
-        // Log request start
         _logger.LogInformation(
             "API Request Started {@RequestDetails}",
             new
@@ -40,7 +39,6 @@ public class RequestLoggingMiddleware
             using var responseBody = new MemoryStream();
             context.Response.Body = responseBody;
 
-            // Process the request
             await _next(context);
 
             stopwatch.Stop();
@@ -49,7 +47,6 @@ public class RequestLoggingMiddleware
             var isSuccess = statusCode >= 200 && statusCode < 300;
             var logLevel = isSuccess ? LogLevel.Information : LogLevel.Warning;
 
-            // Log request completed
             _logger.Log(
                 logLevel,
                 "API Request Completed {@RequestCompletionDetails}",
@@ -64,7 +61,6 @@ public class RequestLoggingMiddleware
                     Timestamp = DateTime.UtcNow
                 });
 
-            // Copy response back to original stream
             responseBody.Position = 0;
             await responseBody.CopyToAsync(originalResponseBody);
         }

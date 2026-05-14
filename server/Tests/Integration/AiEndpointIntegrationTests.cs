@@ -39,7 +39,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
         Assert.True(result.TextLength > 0);
         Assert.NotEmpty(result.Results);
         Assert.InRange(result.OverallAiScore, 0, 100);
-        // Should have heuristic checks (Claude skipped without API key)
         Assert.True(result.Results.Count >= 8, "Expected at least 8 heuristic check results");
     }
 
@@ -76,7 +75,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
     [Fact]
     public async Task AiChecks_WithApiKey_IncludesClaudeInResults()
     {
-        // The FakeExternalApiHandler will return AnthropicAiScore (65) for Claude
         _factory.FakeApiHandler.AnthropicAiScore = 75;
 
         var text = "This is a sufficiently long text for comprehensive AI analysis that examines multiple aspects of writing style and patterns across many sentences.";
@@ -92,7 +90,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
         Assert.NotNull(result);
-        // Claude result should be present
         var claudeResult = result.Results.FirstOrDefault(r => r.Type == AiCheckType.ClaudeAiModel);
         Assert.NotNull(claudeResult);
         Assert.Equal(75, claudeResult.AiScore);
@@ -126,7 +123,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
         // Act
         await _client.PostAsJsonAsync("/api/ai-checks", new AiCheckRequest { Text = text });
 
-        // Assert - no new entry with empty domain
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.DoesNotContain(db.PageScores, p => p.Domain == "");
@@ -135,7 +131,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
     [Fact]
     public async Task AiChecks_AllModels_RequiresApiKey()
     {
-        // Act - no API key header
         var response = await _client.PostAsJsonAsync("/api/ai-checks/all-models",
             new AiCheckRequest { Text = "Some text to analyze" });
 
@@ -200,7 +195,6 @@ public class AiEndpointIntegrationTests : IClassFixture<IntegrationTestFactory>
         var response = await _client.SendAsync(request);
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
 
-        // Assert - Claude result should be first in the list
         Assert.NotNull(result);
         var claudeResult = result.Results.FirstOrDefault(r => r.Type == AiCheckType.ClaudeAiModel);
         if (claudeResult != null)

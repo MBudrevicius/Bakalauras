@@ -19,7 +19,6 @@ public class PunctuationPatternsCheckTests
     [Fact]
     public async Task RunAsync_FormalPunctuation_ReturnsHigherScore()
     {
-        // Only commas and periods — very formal/AI-like
         var text = "The research methodology was carefully designed, with attention to detail. " +
                    "The participants were selected based on specific criteria, including age. " +
                    "The data collection process involved multiple stages, spanning several months. " +
@@ -34,7 +33,6 @@ public class PunctuationPatternsCheckTests
     [Fact]
     public async Task RunAsync_InformalPunctuation_ReturnsLowerScore()
     {
-        // Lots of exclamation marks, dashes, ellipses — human-like
         var text = "Wow! That was amazing!! I can't believe it — honestly... " +
                    "She said (and I quote): 'This is unbelievable!' Really?! " +
                    "The whole thing was — how should I put it — absolutely insane!! " +

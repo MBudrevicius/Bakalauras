@@ -39,7 +39,6 @@ public class VocabularyRichnessCheckTests
     [Fact]
     public async Task RunAsync_RepetitiveText_ReturnsHigherScore()
     {
-        // Highly repetitive text should indicate AI
         var text = string.Join(" ", Enumerable.Repeat("the important thing is that we must consider the implications of this approach", 10));
 
         var result = await _check.RunAsync(text);
@@ -50,7 +49,6 @@ public class VocabularyRichnessCheckTests
     [Fact]
     public async Task RunAsync_DiverseText_ReturnsLowerScore()
     {
-        // Many unique words
         var words = new[] {
             "astronomy", "biology", "chemistry", "dinosaur", "elephant", "flamingo",
             "geology", "harmony", "invention", "journey", "kaleidoscope", "labyrinth",

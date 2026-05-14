@@ -48,13 +48,11 @@ public class SentenceUniformityBranchTests
         Assert.True(score >= 5, $"Score should be >=5, got {score}");
     }
 
-    // Full RunAsync branch coverage
     private readonly SentenceUniformityCheck _check = new();
 
     [Fact]
     public async Task RunAsync_HighSimilarRatio_BoostsScore()
     {
-        // Craft text with same-length sentences (high similar ratio)
         var text = "The cat sat on the mat. The dog ran to the door. The bird flew over here. " +
                    "The fish swam to right. The cow jumped over moon.";
         var result = await _check.RunAsync(text);
@@ -73,7 +71,6 @@ public class SentenceUniformityBranchTests
     [Fact]
     public async Task RunAsync_AllSameLengthSentences_HighScore()
     {
-        // All sentences have identical word count — maximum uniformity
         var text = "The quick brown fox jumps. The lazy brown dog sits. The calm gray cat waits. " +
                    "The tall dark man runs. The cold blue ice melts. The warm red fire glows.";
         var result = await _check.RunAsync(text);
@@ -92,7 +89,6 @@ public class SentenceUniformityBranchTests
     [Fact]
     public async Task RunAsync_ModerateSimilarRatio_ModerateBoost()
     {
-        // Some similar, some varied — targets the similarRatio > 0.45 branch
         var text = "The quick brown fox jumps over the lazy dog today. The slow gray cat sits under the warm sun there. " +
                    "A long winding river flows through the dense ancient forest and across the wide open plains beyond the mountains. " +
                    "Birds fly high above the trees today. Small fish swim in the shallow creek below.";
@@ -103,11 +99,9 @@ public class SentenceUniformityBranchTests
     [Fact]
     public async Task RunAsync_ScoreDescription_InconclusiveRange()
     {
-        // Try to get a score in the 40-59 range for "inconclusive" description
         var text = "This is a medium length sentence. Short one. Another medium sentence here now. " +
                    "Very tiny. A somewhat regular sentence about things. This is just about average in length.";
         var result = await _check.RunAsync(text);
-        // Just verify it runs and gives valid output
         Assert.InRange(result.AiScore, 0, 100);
     }
 

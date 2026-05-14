@@ -10,7 +10,6 @@ public class ParagraphStructureBranchTests
     [Fact]
     public async Task RunAsync_UniformParagraphs_HighScore()
     {
-        // All paragraphs have similar length and sentence count
         var text = "The first paragraph contains a few sentences. It discusses the main topic. The data supports the claim.\n\n" +
                    "The second paragraph also has similar length. It covers related evidence. The findings are consistent.\n\n" +
                    "The third paragraph wraps up the discussion. It summarizes key points. The conclusion is straightforward.";
@@ -21,7 +20,6 @@ public class ParagraphStructureBranchTests
     [Fact]
     public async Task RunAsync_VariedParagraphs_LowerScore()
     {
-        // Paragraphs with very different lengths
         var text = "Short paragraph here.\n\n" +
                    "This is a much longer paragraph that goes on and on, discussing multiple points and covering a wide range of topics. " +
                    "It includes many sentences with varying structure. The author explores different angles and provides extensive evidence. " +
@@ -34,7 +32,6 @@ public class ParagraphStructureBranchTests
     [Fact]
     public async Task RunAsync_RepeatedStarters_GetsBonus()
     {
-        // Paragraphs all starting with same word
         var text = "The first finding was significant and new. The researchers noted its impact on the community.\n\n" +
                    "The second finding confirmed the hypothesis. The data showed a clear correlation between variables.\n\n" +
                    "The third finding was unexpected but valid. The analysis revealed hidden patterns in the dataset.";

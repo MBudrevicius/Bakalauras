@@ -1,4 +1,3 @@
-// Claude API cost estimation and confirmation
 const MODEL_PRICING = {
   "claude-haiku-4-5-20251001": { input: 1.00, output: 5.00, label: "Haiku 4.5" },
   "claude-sonnet-4-6":         { input: 3.00, output: 15.00, label: "Sonnet 4.6" },
@@ -7,7 +6,6 @@ const MODEL_PRICING = {
 const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const CHARS_PER_TOKEN = 4;
 
-// Prompt overhead constants (approximate chars of static prompt text)
 const DETECT_AI_PROMPT_CHARS = 220;
 const DETECT_AI_MAX_TOKENS = 60;
 const HIGHLIGHT_PROMPT_CHARS = 240;
@@ -17,7 +15,6 @@ const CREDIBILITY_PROMPT_CHARS = 600;
 const CREDIBILITY_SOURCE_CHARS = 2400;
 const CREDIBILITY_MAX_TOKENS = 500;
 const MAX_TEXT_LENGTH = 4000;
-const MAX_SEGMENT_CHARS = 300;
 const MAX_HIGHLIGHT_INPUT = 12000;
 
 function getModelPricing(model) {
@@ -31,12 +28,6 @@ function tokensFromChars(chars) {
 function calcCost(inputTokens, outputTokens, pricing) {
   return (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output;
 }
-
-/**
- * Estimate cost for AI scan (DetectAiTextAsync + optional highlight).
- * @param {number} textLength - raw page text length
- * @param {object} [highlight] - { segmentCount, segmentChars[] } if highlight enabled
- */
 export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight = null) {
   if (model === "all-models") {
     return estimateAllModelsCost(textLength, highlight);
@@ -48,7 +39,6 @@ export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight 
   let totalOutput = 0;
   let desc = "";
 
-  // Main detection call (only when text is provided)
   if (textLength > 0) {
     const sampleLen = Math.min(textLength, MAX_TEXT_LENGTH);
     totalInput += tokensFromChars(DETECT_AI_PROMPT_CHARS + sampleLen);
@@ -56,7 +46,6 @@ export function estimateAiScanCost(textLength, model = DEFAULT_MODEL, highlight 
     desc = "AI detection analysis";
   }
 
-  // Highlight call
   if (highlight && highlight.segmentCount > 0) {
     const segChars = Math.min(highlight.totalSegmentChars, MAX_HIGHLIGHT_INPUT);
     totalInput += tokensFromChars(HIGHLIGHT_PROMPT_CHARS + segChars);
@@ -90,20 +79,13 @@ function estimateAllModelsCost(textLength, highlight) {
     desc: "AI detection with all 3 models"
   };
 }
-
-/**
- * Estimate cost for cross-check topic extraction (ExtractTopicAsync).
- * @param {number} textLength - raw page text length
- */
 export function estimateCrossCheckCost(textLength, model = DEFAULT_MODEL) {
   const pricing = getModelPricing(model);
   const sampleLen = Math.min(textLength, MAX_TEXT_LENGTH);
 
-  // Topic extraction call
   let inputTokens = tokensFromChars(EXTRACT_TOPIC_PROMPT_CHARS + sampleLen);
   let outputTokens = EXTRACT_TOPIC_MAX_TOKENS;
 
-  // Credibility verification call (page text + source snippets)
   inputTokens += tokensFromChars(CREDIBILITY_PROMPT_CHARS + sampleLen + CREDIBILITY_SOURCE_CHARS);
   outputTokens += CREDIBILITY_MAX_TOKENS;
 

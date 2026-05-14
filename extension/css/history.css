@@ -1,5 +1,3 @@
-/* History page - consistent with base.css / ai.css */
-
 body {
   width: 100%;
   min-height: 100vh;
@@ -64,7 +62,6 @@ body {
   background: rgba(231,76,60,0.25);
 }
 
-/* Card list */
 .history-list {
   display: flex;
   flex-direction: column;
@@ -81,7 +78,6 @@ body {
   gap: 10px;
 }
 
-/* Entry header: badge + url + timestamp */
 .history-entry-header {
   display: flex;
   align-items: flex-start;
@@ -134,7 +130,6 @@ body {
   text-decoration: underline;
 }
 
-/* Collapsible toggle area */
 .history-toggle {
   cursor: pointer;
   position: relative;
@@ -159,14 +154,12 @@ body {
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* Details drawer */
 .history-details {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Score circle - slightly smaller for history cards */
 .history-card .score-section {
   padding: 4px 0;
 }
@@ -176,7 +169,6 @@ body {
   font-size: 17px;
 }
 
-/* AI bar size overrides for history cards */
 .history-card .ai-bar {
   margin-top: 4px;
 }
@@ -184,7 +176,6 @@ body {
   transition: width 0.3s ease;
 }
 
-/* Empty state */
 .history-empty {
   text-align: center;
   padding: 48px 0;

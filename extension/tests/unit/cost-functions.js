@@ -1,5 +1,3 @@
-// Re-export pure functions from cost.js for testing
-// (strip DOM / chrome dependencies)
 
 const MODEL_PRICING = {
   "claude-haiku-4-5-20251001": { input: 1.00, output: 5.00, label: "Haiku 4.5" },

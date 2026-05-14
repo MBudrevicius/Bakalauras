@@ -1,11 +1,4 @@
-const {
-  computeCoverageScore,
-  computeDiversityScore,
-  computeOverallScore,
-  infoBarColor,
-  classifyClaim,
-  categorizeSeverity,
-} = require("./info-functions");
+import { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } from "./info-functions";
 
 describe("computeCoverageScore", () => {
   test("0 reliable sources → 0", () => expect(computeCoverageScore(0)).toBe(0));
@@ -27,7 +20,6 @@ describe("computeDiversityScore", () => {
 
 describe("computeOverallScore", () => {
   test("with credScore: weighted 60/20/20", () => {
-    // credScore=80, coverage=100, diversity=100 → 80*0.6+100*0.2+100*0.2 = 88
     expect(computeOverallScore(80, 100, 100)).toBe(88);
   });
 
@@ -36,7 +28,6 @@ describe("computeOverallScore", () => {
   });
 
   test("without credScore (null): 50/50 coverage+diversity", () => {
-    // coverage=70, diversity=40 → 70*0.5+40*0.5 = 55
     expect(computeOverallScore(null, 70, 40)).toBe(55);
   });
 
@@ -57,7 +48,6 @@ describe("computeOverallScore", () => {
   });
 
   test("rounds to nearest integer", () => {
-    // 75*0.6+40*0.2+40*0.2 = 45+8+8 = 61
     expect(computeOverallScore(75, 40, 40)).toBe(61);
   });
 });

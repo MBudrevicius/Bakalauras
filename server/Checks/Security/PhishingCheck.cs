@@ -29,36 +29,30 @@ public partial class PhishingCheck : ISecurityCheck
         var host = uri.Host.ToLowerInvariant();
         var fullUrl = url.ToLowerInvariant();
 
-        // IP address instead of domain name (high severity)
         if (IPAddress.TryParse(host, out _))
         {
             warnings.Add("URL uses an IP address instead of a domain name");
             highSeverity = true;
         }
 
-        // @ symbol in URL (high severity)
         if (uri.UserInfo.Length > 0)
         {
             warnings.Add("URL contains a '@' symbol which can mask the real destination");
             highSeverity = true;
         }
 
-        // Punycode / IDN homograph attack (high severity)
         if (host.Contains("xn--"))
         {
             warnings.Add("Domain uses punycode (internationalized characters), possible homograph attack");
             highSeverity = true;
         }
 
-        // Excessive subdomains (more than 3 dots)
         if (host.Count(c => c == '.') > 3)
             warnings.Add("Domain has an unusually high number of subdomains");
 
-        // Very long URL
         if (url.Length > 200)
             warnings.Add("URL is unusually long");
 
-        // Typosquatting / lookalike domain detection
         var domainParts = host.Split('.');
         var registrableDomain = domainParts.Length >= 2
             ? domainParts[^2]
@@ -71,13 +65,9 @@ public partial class PhishingCheck : ISecurityCheck
             highSeverity = true;
         }
 
-
-        // Multiple redirects / double protocol
         if (DoubleProtocolRegex().IsMatch(fullUrl[8..]))
             warnings.Add("URL contains a suspicious embedded protocol (possible redirect attack)");
 
-
-        // Evaluate
         if (warnings.Count == 0)
         {
             return Task.FromResult(new SecurityCheckResult
@@ -128,10 +118,8 @@ public partial class PhishingCheck : ISecurityCheck
             if (normalized == brand)
                 return (brand, 1);
 
-            // Compare normalized domain vs brand
             var dist = LevenshteinDistance(normalized, brand);
 
-            // Also compare raw domain vs brand
             var rawDist = LevenshteinDistance(domain, brand);
             dist = Math.Min(dist, rawDist);
 

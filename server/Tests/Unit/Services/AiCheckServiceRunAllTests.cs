@@ -236,7 +236,6 @@ public class AiCheckServiceRunAllTests
         var response = await service.RunAllAsync(request);
 
         Assert.Equal(2, response.Results.Count);
-        // Claude has score 0, so only heuristic contributes
         Assert.Equal(50, response.OverallAiScore);
         db.Dispose();
     }
@@ -258,7 +257,6 @@ public class AiCheckServiceRunAllTests
         var request = new AiCheckRequest { Text = "Test text for analysis" };
         var response = await service.RunAllAsync(request);
 
-        // Claude 80 * 0.6 + Heuristic 60 * 0.4 = 48 + 24 = 72
         Assert.Equal(72, response.OverallAiScore);
         db.Dispose();
     }
@@ -280,7 +278,6 @@ public class AiCheckServiceRunAllTests
         var request = new AiCheckRequest { Text = "Test text for analysis" };
         var response = await service.RunAllAsync(request);
 
-        // Claude should be first in results
         Assert.Equal(AiCheckType.ClaudeAiModel, response.Results[0].Type);
         db.Dispose();
     }

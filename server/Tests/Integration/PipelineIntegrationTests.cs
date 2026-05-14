@@ -29,7 +29,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
         var url = $"https://{domain}/page";
         var text = "Artificial intelligence systems demonstrate consistent patterns in text generation, including uniform sentence length distribution and repetitive phrasing.";
 
-        // Act - simulate user running security check first, then AI check
         var secResponse = await _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = url });
         Assert.Equal(HttpStatusCode.OK, secResponse.StatusCode);
@@ -38,7 +37,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
             new AiCheckRequest { Text = text, Url = url });
         Assert.Equal(HttpStatusCode.OK, aiResponse.StatusCode);
 
-        // Assert - both scores persisted to same record
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var saved = db.PageScores.FirstOrDefault(p => p.Domain == domain);
@@ -58,7 +56,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
         request.Headers.Add("Access-Control-Request-Headers", "Content-Type");
         var response = await _client.SendAsync(request);
 
-        // Assert - CORS should allow any origin
         Assert.True(response.Headers.Contains("Access-Control-Allow-Origin") ||
                     response.StatusCode == HttpStatusCode.NoContent ||
                     response.StatusCode == HttpStatusCode.OK,
@@ -68,12 +65,10 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
     [Fact]
     public async Task JsonContentType_Required()
     {
-        // Act - send non-JSON content
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/security-checks");
         request.Content = new StringContent("url=https://example.com", System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
         var response = await _client.SendAsync(request);
 
-        // Assert - should reject non-JSON
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -85,7 +80,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
             new SecurityCheckRequest { Url = "https://example.com" });
         var result = await response.Content.ReadFromJsonAsync<SecurityCheckResponse>();
 
-        // Assert - validate structure
         Assert.NotNull(result);
         Assert.NotNull(result.Url);
         Assert.NotNull(result.Results);
@@ -108,7 +102,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
             new AiCheckRequest { Text = text });
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
 
-        // Assert - validate structure
         Assert.NotNull(result);
         Assert.NotNull(result.AnalyzedText);
         Assert.True(result.TextLength > 0);
@@ -130,7 +123,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
         var aiUrl = $"https://{domain}/ai";
         var text = "Sample text for interference test between security and AI endpoints.";
 
-        // Act - run both concurrently
         var secTask = _client.PostAsJsonAsync("/api/security-checks",
             new SecurityCheckRequest { Url = secUrl });
         var aiTask = _client.PostAsJsonAsync("/api/ai-checks",
@@ -138,7 +130,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
 
         var results = await Task.WhenAll(secTask, aiTask);
 
-        // Assert - both succeed
         Assert.All(results, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
     }
 
@@ -150,11 +141,9 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
             new SecurityCheckRequest { Url = "https://example.com" });
         var result = await response.Content.ReadFromJsonAsync<SecurityCheckResponse>();
 
-        // Assert - should have results from all 9 registered security checks
         Assert.NotNull(result);
         var checkTypes = result.Results.Select(r => r.Type).Distinct().ToList();
         Assert.Contains(SecurityCheckType.Https, checkTypes);
-        // At minimum we should have multiple check types
         Assert.True(checkTypes.Count >= 5, $"Expected at least 5 distinct check types, got {checkTypes.Count}");
     }
 
@@ -169,7 +158,6 @@ public class PipelineIntegrationTests : IClassFixture<IntegrationTestFactory>
             new AiCheckRequest { Text = text });
         var result = await response.Content.ReadFromJsonAsync<AiCheckResponse>();
 
-        // Assert - should have results from all 8 heuristic checks (Claude excluded without key)
         Assert.NotNull(result);
         var checkTypes = result.Results.Select(r => r.Type).Distinct().ToList();
         Assert.Contains(AiCheckType.VocabularyRichness, checkTypes);

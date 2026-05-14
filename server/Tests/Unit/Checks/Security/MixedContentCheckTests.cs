@@ -19,7 +19,6 @@ public class MixedContentCheckTests
         return (int)method.Invoke(null, [doc])!;
     }
 
-    // CountHttpResources tests
     [Fact]
     public void CountHttpResources_HttpScripts_Counted()
     {
@@ -60,7 +59,6 @@ public class MixedContentCheckTests
         Assert.Equal(1, InvokeCountHttpResources(doc, "//iframe[@src]", "src"));
     }
 
-    // CountHttpForms tests
     [Fact]
     public void CountHttpForms_HttpAction_Counted()
     {

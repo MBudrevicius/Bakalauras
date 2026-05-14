@@ -20,7 +20,6 @@ public class SentenceUniformityCheckTests
     [Fact]
     public async Task RunAsync_UniformSentences_ReturnsHighScore()
     {
-        // All sentences have almost the same word count — very AI-like
         var text = "The weather is quite nice today in the city. " +
                    "The garden looks very beautiful right now indeed. " +
                    "The children are playing happily outside on swings. " +

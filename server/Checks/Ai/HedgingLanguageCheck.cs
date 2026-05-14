@@ -31,19 +31,15 @@ public partial class HedgingLanguageCheck : IAiCheck
 
         var totalWords = (double)words.Count;
 
-        // Modal verb ratio - AI overuses may/might/could/would/should to soften claims
         var modalCount = words.Count(w => ModalVerbRegex().IsMatch(w));
         var modalRate = modalCount / totalWords;
 
-        // Concessive conjunction ratio - although/though/while/whereas/however/nevertheless
         var concessiveCount = words.Count(w => ConcessiveRegex().IsMatch(w));
         var concessiveRate = concessiveCount / totalWords;
 
-        // Qualifying adverb ratio - words ending in -ly that soften: relatively, somewhat, generally, etc.
         var qualifierCount = words.Count(w => QualifierAdverbRegex().IsMatch(w));
         var qualifierRate = qualifierCount / totalWords;
 
-        // Structural balancing - sentences containing "but", "however", "on the other hand" type contrast
         var balancedSentences = 0;
         foreach (var sentence in sentences)
         {
@@ -53,7 +49,6 @@ public partial class HedgingLanguageCheck : IAiCheck
         }
         var balancedRate = (double)balancedSentences / sentences.Count;
 
-        // Conditional constructions - "if", "depending", "it depends", "whether"
         var conditionalCount = words.Count(w => ConditionalRegex().IsMatch(w));
         var conditionalRate = conditionalCount / totalWords;
 
@@ -125,23 +120,18 @@ public partial class HedgingLanguageCheck : IAiCheck
         });
     }
 
-    // Modal verbs that soften claims
     [GeneratedRegex(@"^(may|might|could|would|should)$")]
     private static partial Regex ModalVerbRegex();
 
-    // Concessive conjunctions that introduce contrast/balance
     [GeneratedRegex(@"^(although|though|however|nevertheless|nonetheless|whereas|yet|conversely)$")]
     private static partial Regex ConcessiveRegex();
 
-    // Qualifying adverbs that weaken assertions
     [GeneratedRegex(@"^(relatively|somewhat|fairly|generally|typically|usually|arguably|potentially|perhaps|possibly|largely|mostly|partly|approximately|essentially|virtually|seemingly|apparently|presumably|supposedly|ostensibly)$")]
     private static partial Regex QualifierAdverbRegex();
 
-    // Contrast structures within a sentence
     [GeneratedRegex(@"\b(but|however|on the other hand|while .+ also|although|yet|at the same time|conversely)\b")]
     private static partial Regex ContrastStructureRegex();
 
-    // Conditional/uncertain framing
     [GeneratedRegex(@"^(if|whether|depending|depends)$")]
     private static partial Regex ConditionalRegex();
 

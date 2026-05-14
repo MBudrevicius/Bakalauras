@@ -1,11 +1,8 @@
-/**
- * UI test helpers — local HTTP server + Chrome API mock injection for Puppeteer.
- */
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
+import { createServer } from "http";
+import { readFile } from "fs";
+import { resolve as _resolve, normalize, join, extname } from "path";
 
-const EXTENSION_DIR = path.resolve(__dirname, "../..");
+const EXTENSION_DIR = _resolve(__dirname, "../..");
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -15,28 +12,25 @@ const MIME_TYPES = {
   ".png":  "image/png",
   ".svg":  "image/svg+xml",
 };
-
-/** Start a simple static HTTP server for the extension directory. */
 function startServer(port = 0) {
   return new Promise((resolve) => {
-    const server = http.createServer((req, res) => {
-      const safePath = path.normalize(req.url.split("?")[0]).replace(/^(\.\.[/\\])+/, "");
-      const filePath = path.join(EXTENSION_DIR, safePath);
+    const server = createServer((req, res) => {
+      const safePath = normalize(req.url.split("?")[0]).replace(/^(\.\.[/\\])+/, "");
+      const filePath = join(EXTENSION_DIR, safePath);
 
-      // Ensure the resolved path stays within the extension directory
       if (!filePath.startsWith(EXTENSION_DIR)) {
         res.writeHead(403);
         res.end("Forbidden");
         return;
       }
 
-      fs.readFile(filePath, (err, data) => {
+      readFile(filePath, (err, data) => {
         if (err) {
           res.writeHead(404);
           res.end("Not found");
           return;
         }
-        const ext = path.extname(filePath);
+        const ext = extname(filePath);
         res.writeHead(200, { "Content-Type": MIME_TYPES[ext] || "application/octet-stream" });
         res.end(data);
       });
@@ -46,8 +40,6 @@ function startServer(port = 0) {
     });
   });
 }
-
-/** Chrome-extension API mock injected via page.evaluateOnNewDocument.  */
 function getChromeMockScript(serverOrigin) {
   return `
     (() => {
@@ -99,11 +91,6 @@ function getChromeMockScript(serverOrigin) {
     })();
   `;
 }
-
-/**
- * API responses keyed by "METHOD /path".
- * Called from the fetch-intercept script injected into the page.
- */
 const API_RESPONSES = {
   "POST /api/security-checks": {
     overallScore: 82,
@@ -147,8 +134,6 @@ const API_RESPONSES = {
     aiCheckCount: 1,
   },
 };
-
-/** Script to override fetch() in-page so API calls return mock data. */
 function getFetchMockScript() {
   return `
     (() => {
@@ -176,4 +161,4 @@ function getFetchMockScript() {
   `;
 }
 
-module.exports = { startServer, getChromeMockScript, getFetchMockScript, API_RESPONSES };
+export default { startServer, getChromeMockScript, getFetchMockScript, API_RESPONSES };

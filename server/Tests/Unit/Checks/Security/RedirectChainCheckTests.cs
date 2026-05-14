@@ -151,7 +151,6 @@ public class RedirectChainCheckTests
             responses[$"https://example.com/r{i}"] = (HttpStatusCode.Found, $"https://example.com/r{i + 1}");
         }
         responses["https://example.com/r5"] = (HttpStatusCode.OK, null);
-        // Also need the initial URL
         responses["https://example.com/"] = (HttpStatusCode.Found, "https://example.com/r0");
 
         var handler = new RedirectHandler(responses);
@@ -206,7 +205,6 @@ public class RedirectChainCheckTests
     {
         var handler = new RedirectHandler(new Dictionary<string, (HttpStatusCode, string?)>(),
             HttpStatusCode.InternalServerError);
-        // Override to throw
         var throwingHandler = new ThrowingHandler();
         var check = CreateCheck(throwingHandler);
         var result = await check.RunAsync("https://example.com");

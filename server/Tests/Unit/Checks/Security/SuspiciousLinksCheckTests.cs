@@ -26,7 +26,6 @@ public class SuspiciousLinksCheckTests
         return (bool)method.Invoke(null, [text])!;
     }
 
-    // IsHiddenElement tests
     [Theory]
     [InlineData("display:none", true)]
     [InlineData("display: none", true)]
@@ -77,7 +76,6 @@ public class SuspiciousLinksCheckTests
         Assert.False(InvokeIsHiddenElement(node));
     }
 
-    // HasSuspiciousTld tests
     [Theory]
     [InlineData("evil.tk", true)]
     [InlineData("phishing.ml", true)]
@@ -102,7 +100,6 @@ public class SuspiciousLinksCheckTests
         Assert.Equal(expected, InvokeHasSuspiciousTld(host));
     }
 
-    // LooksLikeUrl tests
     [Theory]
     [InlineData("http://example.com", true)]
     [InlineData("https://example.com", true)]

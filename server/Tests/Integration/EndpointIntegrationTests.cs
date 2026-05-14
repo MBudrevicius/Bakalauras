@@ -15,7 +15,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
-            // Remove ALL EF registrations (both DbContextOptions and the DbContext itself)
             var toRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                 d.ServiceType == typeof(AppDbContext) ||
@@ -24,7 +23,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 .ToList();
             foreach (var d in toRemove) services.Remove(d);
 
-            // Re-add with InMemory
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase("TestDb_" + Guid.NewGuid()));
         });
@@ -39,8 +37,6 @@ public class EndpointIntegrationTests : IClassFixture<CustomWebApplicationFactor
     {
         _client = factory.CreateClient();
     }
-
-    // --- Security Endpoints ---
 
     [Fact]
     public async Task SecurityChecks_EmptyUrl_ReturnsBadRequest()
@@ -62,8 +58,6 @@ public class EndpointIntegrationTests : IClassFixture<CustomWebApplicationFactor
         var response = await _client.PostAsJsonAsync("/api/security-checks", new SecurityCheckRequest { Url = "https://example.com" });
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
     }
-
-    // --- AI Endpoints ---
 
     [Fact]
     public async Task AiChecks_EmptyTextAndUrl_ReturnsBadRequest()
@@ -115,8 +109,6 @@ public class EndpointIntegrationTests : IClassFixture<CustomWebApplicationFactor
             new HighlightRequest { Segments = ["This is a test paragraph with enough words"] });
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
     }
-
-    // --- Info Endpoints ---
 
     [Fact]
     public async Task CrossCheck_EmptyUrl_ReturnsBadRequest()

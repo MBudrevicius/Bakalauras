@@ -61,7 +61,6 @@ public class UrlValidatorTests
     [Fact]
     public void IsPrivateOrReserved_PublicDomain_ReturnsFalse()
     {
-        // Real public domain that resolves to a public IP
         var uri = new Uri("http://example.com");
         Assert.False(UrlValidator.IsPrivateOrReserved(uri));
     }
@@ -69,7 +68,6 @@ public class UrlValidatorTests
     [Fact]
     public void IsPrivateOrReserved_NonExistentDomain_ReturnsFalse()
     {
-        // DNS resolution will fail, catch block returns false
         var uri = new Uri("http://this-domain-does-not-exist-xyz123abc.invalid");
         Assert.False(UrlValidator.IsPrivateOrReserved(uri));
     }

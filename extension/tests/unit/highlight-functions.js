@@ -1,4 +1,3 @@
-// Re-export pure highlight logic functions for testing (no DOM deps)
 
 function classifyAiHighlight(score) {
   if (score < 40) return null; // no highlight

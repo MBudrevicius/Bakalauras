@@ -1,45 +1,9 @@
-/**
- * Integration tests for the browser extension - verifies cross-module interactions:
- * - Cost estimation pipeline (model selection → token calculation → cost formatting)
- * - Score computation pipeline (credibility + coverage + diversity → overall score → display class)
- * - Highlight classification pipeline (AI score → highlight class → credibility mapping)
- * - History management pipeline (entry creation → storage → trimming)
- * - Security result pipeline (severity resolution → metadata → score classification)
- */
-
-const {
-  secScoreClass,
-  aiScoreClass,
-  aiBarColor,
-  miniScoreClass,
-  severityMap,
-} = require("../unit/helper-functions");
-
-const {
-  computeCoverageScore,
-  computeDiversityScore,
-  computeOverallScore,
-  infoBarColor,
-  classifyClaim,
-  categorizeSeverity,
-} = require("../unit/info-functions");
-
-const { classifyAiHighlight, classifyCredibilityHighlight } = require("../unit/highlight-functions");
-
-const { MAX_HISTORY, trimHistory, prependEntry } = require("../unit/history-functions");
-
-const {
-  getModelPricing,
-  estimateAiScanCost,
-  estimateCrossCheckCost,
-  formatCost,
-} = require("../unit/cost-functions");
-
-const { severityMeta, resolveSeverity, getSeverityMeta } = require("../unit/security-functions");
-
-// ============================================================================
-// Integration: Full scoring pipeline (credibility → helper classification)
-// ============================================================================
+import { secScoreClass, aiScoreClass, aiBarColor, miniScoreClass } from "../unit/helper-functions";
+import { computeCoverageScore, computeDiversityScore, computeOverallScore, infoBarColor, classifyClaim, categorizeSeverity } from "../unit/info-functions";
+import { classifyAiHighlight, classifyCredibilityHighlight } from "../unit/highlight-functions";
+import { MAX_HISTORY, prependEntry } from "../unit/history-functions";
+import { estimateAiScanCost, estimateCrossCheckCost, formatCost } from "../unit/cost-functions";
+import { resolveSeverity, getSeverityMeta } from "../unit/security-functions";
 
 describe("Integration: Credibility score → display pipeline", () => {
   test("high credibility score flows through overall calculation and display correctly", () => {
@@ -47,18 +11,15 @@ describe("Integration: Credibility score → display pipeline", () => {
     const reliableSources = 5;
     const pageLinkDomains = 6;
 
-    // Step 1: Compute sub-scores
     const coverage = computeCoverageScore(reliableSources);
     const diversity = computeDiversityScore(pageLinkDomains);
     expect(coverage).toBe(100);
     expect(diversity).toBe(100);
 
-    // Step 2: Compute overall score
     const overall = computeOverallScore(credScore, coverage, diversity);
     expect(overall).toBe(Math.round(85 * 0.6 + 100 * 0.2 + 100 * 0.2));
     expect(overall).toBe(91);
 
-    // Step 3: Verify display color matches high score
     const color = infoBarColor(overall);
     expect(color).toBe("#2ecc71"); // green
   });
@@ -93,39 +54,29 @@ describe("Integration: Credibility score → display pipeline", () => {
   });
 
   test("source categorization aligns with coverage score", () => {
-    // 5+ reliable sources = Pass severity AND 100 coverage
     expect(categorizeSeverity(5)).toBe("Pass");
     expect(computeCoverageScore(5)).toBe(100);
 
-    // 3-4 sources = Info AND 70 coverage
     expect(categorizeSeverity(3)).toBe("Info");
     expect(computeCoverageScore(3)).toBe(70);
 
-    // 0 sources = Warning AND 0 coverage
     expect(categorizeSeverity(0)).toBe("Warning");
     expect(computeCoverageScore(0)).toBe(0);
   });
 });
 
-// ============================================================================
-// Integration: AI detection → highlight classification pipeline
-// ============================================================================
-
 describe("Integration: AI score → highlight → display pipeline", () => {
   test("high AI score produces correct highlight and display class", () => {
     const aiScore = 85;
 
-    // Step 1: Highlight classification
     const highlight = classifyAiHighlight(aiScore);
     expect(highlight).not.toBeNull();
     expect(highlight.label).toBe("very likely AI");
     expect(highlight.color).toContain("231, 76, 60"); // red-ish
 
-    // Step 2: Display class for score circle
     const scoreClass = aiScoreClass(aiScore);
     expect(scoreClass).toBe("score-ai-vhigh");
 
-    // Step 3: Bar color
     const barColor = aiBarColor(aiScore);
     expect(barColor).toBe("#e74c3c"); // red
   });
@@ -155,39 +106,30 @@ describe("Integration: AI score → highlight → display pipeline", () => {
   });
 
   test("credibility highlight inversely maps from AI score", () => {
-    // High AI score → low credibility → highlight applied
     const highAi = classifyCredibilityHighlight(90);
     expect(highAi).not.toBeNull();
     expect(highAi.credibility).toBe(10);
     expect(highAi.level).toBe("very-low");
 
-    // Low AI score → high credibility → no highlight
     const lowAi = classifyCredibilityHighlight(20);
     expect(lowAi).toBeNull(); // credibility 80 >= 70: no highlight
   });
 });
-
-// ============================================================================
-// Integration: Cost estimation → confirmation pipeline
-// ============================================================================
 
 describe("Integration: Cost estimation end-to-end pipeline", () => {
   test("AI scan with Haiku model: estimation → formatting → confirmation check", () => {
     const textLength = 2000;
     const model = "claude-haiku-4-5-20251001";
 
-    // Step 1: Estimate cost
     const estimate = estimateAiScanCost(textLength, model);
     expect(estimate.inputTokens).toBeGreaterThan(0);
     expect(estimate.outputTokens).toBeGreaterThan(0);
     expect(estimate.total).toBeGreaterThan(0);
     expect(estimate.label).toBe("Haiku 4.5");
 
-    // Step 2: Format cost
     const formatted = formatCost(estimate.total);
     expect(formatted).toMatch(/^\$|^< \$/); // starts with $ or < $
 
-    // Step 3: Verify the cost is very low for Haiku model
     expect(estimate.total).toBeLessThan(0.01); // Should be well under 1 cent
   });
 
@@ -197,7 +139,6 @@ describe("Integration: Cost estimation end-to-end pipeline", () => {
     const opusEst = estimateAiScanCost(textLength, "claude-opus-4-7");
 
     expect(opusEst.total).toBeGreaterThan(haikuEst.total);
-    // Opus is 5x input price and 5x output price vs Haiku
     const ratio = opusEst.total / haikuEst.total;
     expect(ratio).toBeGreaterThan(3);
   });
@@ -238,13 +179,8 @@ describe("Integration: Cost estimation end-to-end pipeline", () => {
   });
 });
 
-// ============================================================================
-// Integration: Security results → display pipeline
-// ============================================================================
-
 describe("Integration: Security check results → display pipeline", () => {
   test("security response with mixed severities produces correct score class", () => {
-    // Simulate a security response with mixed results
     const results = [
       { severity: 0, title: "HTTPS" },         // Pass = 100
       { severity: 0, title: "SSL" },            // Pass = 100
@@ -252,7 +188,6 @@ describe("Integration: Security check results → display pipeline", () => {
       { severity: 2, title: "Phishing risk" },  // Warning = 0
     ];
 
-    // Step 1: Calculate score (same formula as server)
     const score = results.reduce((sum, r) => {
       if (r.severity === 0) return sum + 100;
       if (r.severity === 1) return sum + 80;
@@ -261,11 +196,9 @@ describe("Integration: Security check results → display pipeline", () => {
 
     expect(score).toBe(70); // (100+100+80+0)/4
 
-    // Step 2: Get score display class
     const displayClass = secScoreClass(score);
     expect(displayClass).toBe("score-yellow");
 
-    // Step 3: Resolve each severity and get meta
     results.forEach((r) => {
       const sevName = resolveSeverity(r.severity);
       const meta = getSeverityMeta(sevName);
@@ -293,15 +226,10 @@ describe("Integration: Security check results → display pipeline", () => {
   });
 });
 
-// ============================================================================
-// Integration: History management pipeline
-// ============================================================================
-
 describe("Integration: History entry lifecycle", () => {
   test("entries from different check types accumulate correctly", () => {
     let history = [];
 
-    // Add security check result
     history = prependEntry(history, {
       type: "security",
       url: "https://example.com",
@@ -309,7 +237,6 @@ describe("Integration: History entry lifecycle", () => {
       results: [{ title: "HTTPS", severity: "Pass" }],
     });
 
-    // Add AI check result
     history = prependEntry(history, {
       type: "ai",
       url: "https://example.com",
@@ -317,7 +244,6 @@ describe("Integration: History entry lifecycle", () => {
       results: [{ title: "Vocabulary Richness", aiScore: 45 }],
     });
 
-    // Add cross-check result
     history = prependEntry(history, {
       type: "credibility",
       url: "https://example.com",
@@ -326,12 +252,10 @@ describe("Integration: History entry lifecycle", () => {
     });
 
     expect(history).toHaveLength(3);
-    // Most recent first
     expect(history[0].type).toBe("credibility");
     expect(history[1].type).toBe("ai");
     expect(history[2].type).toBe("security");
 
-    // All entries have timestamps
     history.forEach((entry) => {
       expect(entry.timestamp).toBeDefined();
       expect(typeof entry.timestamp).toBe("number");
@@ -341,7 +265,6 @@ describe("Integration: History entry lifecycle", () => {
   test("history trimming works with MAX_HISTORY entries", () => {
     let history = [];
 
-    // Add MAX_HISTORY + 10 entries
     for (let i = 0; i < MAX_HISTORY + 10; i++) {
       history = prependEntry(history, {
         type: "security",
@@ -350,9 +273,7 @@ describe("Integration: History entry lifecycle", () => {
       });
     }
 
-    // Should be capped at MAX_HISTORY
     expect(history.length).toBe(MAX_HISTORY);
-    // Most recent entry should be the last one added
     expect(history[0].url).toBe(`https://site${MAX_HISTORY + 9}.com`);
   });
 
@@ -374,7 +295,6 @@ describe("Integration: History entry lifecycle", () => {
     expect(displayClasses[2]).toBe("score-ai-vhigh");
     expect(displayClasses[3]).toBe("score-ai-low");
 
-    // Mini score classes for compact view
     const miniClasses = entries.map((e) =>
       miniScoreClass(e.score, e.type === "ai")
     );
@@ -384,10 +304,6 @@ describe("Integration: History entry lifecycle", () => {
     expect(miniClasses[3]).toBe("ok");     // AI 30 = ok (30 < 55 boundary)
   });
 });
-
-// ============================================================================
-// Integration: Claim analysis → display pipeline
-// ============================================================================
 
 describe("Integration: Cross-check claims → classification pipeline", () => {
   test("mixed claims produce correct classification distribution", () => {
@@ -407,7 +323,6 @@ describe("Integration: Cross-check claims → classification pipeline", () => {
   });
 
   test("claim classification integrates with severity for overall assessment", () => {
-    // Simulate: 5 reliable sources = Pass
     const reliableSourceCount = 5;
     const severity = categorizeSeverity(reliableSourceCount);
     expect(severity).toBe("Pass");
@@ -418,18 +333,11 @@ describe("Integration: Cross-check claims → classification pipeline", () => {
   });
 });
 
-// ============================================================================
-// Integration: AI + Security scores combined in mini score display
-// ============================================================================
-
 describe("Integration: Combined score dashboard display", () => {
   test("mini score classes correctly differentiate AI vs security interpretation", () => {
-    // Same numeric score, different interpretation
     const score75 = 75;
 
-    // Security 75 = ok (decent security, 60-79 range)
     expect(miniScoreClass(score75, false)).toBe("ok");
-    // AI 75 = danger (>= 75 threshold)
     expect(miniScoreClass(score75, true)).toBe("danger");
   });
 
@@ -438,16 +346,13 @@ describe("Integration: Combined score dashboard display", () => {
     const aiScore = 62;
     const credibilityScore = 71;
 
-    // Security display
     expect(secScoreClass(securityScore)).toBe("score-green");
     expect(miniScoreClass(securityScore, false)).toBe("good");
 
-    // AI display
     expect(aiScoreClass(aiScore)).toBe("score-ai-medium");
     expect(miniScoreClass(aiScore, true)).toBe("bad");
     expect(aiBarColor(aiScore)).toBe("#f1c40f"); // yellow - medium concern
 
-    // Credibility display
     expect(infoBarColor(credibilityScore)).toBe("#2ecc71"); // green - good
   });
 });

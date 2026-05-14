@@ -20,7 +20,6 @@ public class PerplexityEstimationCheckTests
     [Fact]
     public async Task RunAsync_HighlyPredictableText_ScoresHigher()
     {
-        // Very repetitive bigrams/trigrams — AI-like
         var text = string.Join(" ", Enumerable.Repeat("it is important to note that the key factor in this analysis is the fundamental approach to the problem", 5));
 
         var result = await _check.RunAsync(text);

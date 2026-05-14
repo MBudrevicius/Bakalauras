@@ -27,7 +27,6 @@ public class PunctuationPatternsBranchTests
     [Fact]
     public void CountSubstring_OverlappingNotCounted()
     {
-        // "....." has 1 non-overlapping "..." then not enough chars
         Assert.Equal(1, InvokeCountSubstring(".....", "..."));
     }
 
@@ -37,7 +36,6 @@ public class PunctuationPatternsBranchTests
         Assert.Equal(0, InvokeCountSubstring("", "..."));
     }
 
-    // Full RunAsync tests for different branch paths
     private readonly PunctuationPatternsCheck _check = new();
 
     [Fact]
@@ -60,7 +58,6 @@ public class PunctuationPatternsBranchTests
     [Fact]
     public async Task RunAsync_FormalText_HigherScore()
     {
-        // Text dominated by commas and periods, minimal informal punctuation
         var text = "This is a test sentence. Another sentence here. Yet another one follows, with commas, periods, and more. " +
                    "The analysis should detect formal patterns. Simple and clean writing style. Nothing fancy here. " +
                    "More sentences with periods. Commas appear sometimes, yes. The end of the text is near. Final sentence.";
@@ -71,7 +68,6 @@ public class PunctuationPatternsBranchTests
     [Fact]
     public async Task RunAsync_InformalText_LowerScore()
     {
-        // Text with exclamations, dashes, ellipses, parentheses
         var text = "Wow!!! This is AMAZING! Can you believe it?! " +
                    "I mean -- seriously -- it's crazy! (I know, right?) " +
                    "Wait... hold on... what?! The thing is... well... " +
@@ -90,7 +86,6 @@ public class PunctuationPatternsBranchTests
     [Fact]
     public async Task RunAsync_OnlyCommasAndPeriods_VeryFormal()
     {
-        // 100% formal punctuation — formalRatio > 0.92
         var text = "The study concluded with significant findings, and the data was clear. " +
                    "Researchers noted several important trends, including changes in behavior. " +
                    "The methodology was robust, with controls in place. The sample was representative, " +

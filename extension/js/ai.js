@@ -12,7 +12,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
   const aiResultsList  = document.getElementById("ai-results-list");
   const aiStatus       = document.getElementById("ai-status");
 
-  // API key management
   const apiKeyInput  = document.getElementById("claude-api-key");
   const apiKeyToggle = document.getElementById("api-key-toggle");
   const useAiChk     = document.getElementById("use-ai-chk");
@@ -57,7 +56,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
     apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
   });
 
-  // Model selector
   const modelSelect = document.getElementById("claude-model");
   const { claudeModel } = await chrome.storage.local.get("claudeModel");
   if (claudeModel) modelSelect.value = claudeModel;
@@ -66,7 +64,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
     chrome.storage.local.set({ claudeModel: modelSelect.value });
   });
 
-  // Restore saved state
   const { aiState } = await chrome.storage.session.get("aiState");
   if (aiState?.url === getCurrentUrl() && aiState.data) {
     if (aiState.isAllModels) {
@@ -76,7 +73,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
     }
   }
 
-  // Full page scan
   aiFullBtn.addEventListener("click", async () => {
     const currentUrl = getCurrentUrl();
     if (!currentUrl) { showStatus(aiStatus, "No URL detected.", true); return; }
@@ -106,7 +102,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
     }
   });
 
-  // Selected text scan
   aiSelBtn.addEventListener("click", async () => {
     try {
       const tab = await getWebTab();
@@ -181,7 +176,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
         score,
         results
       });
-      // Refetch stored average from server (running average now updated)
       await fetchStoredScores(getCurrentUrl(), true);
       showStatus(aiStatus, data.textLength ? `Analyzed ${data.textLength} characters.` : "");
     } catch (err) {
@@ -225,7 +219,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
 
     aiResultsList.innerHTML = "";
 
-    // Claude combined result (clickable to expand per-model breakdown)
     const avgClaudeScore = Math.round(data.modelResults.reduce((s, m) => s + m.aiScore, 0) / data.modelResults.length);
     const claudeLi = document.createElement("li");
     claudeLi.className = "result-item result-item-expandable";
@@ -259,7 +252,6 @@ export async function initAi(getWebTab, getCurrentUrl) {
     });
     aiResultsList.appendChild(claudeLi);
 
-    // Heuristic results (same as single-model view)
     for (const r of data.heuristicResults) {
       const li = document.createElement("li");
       li.className = "result-item";

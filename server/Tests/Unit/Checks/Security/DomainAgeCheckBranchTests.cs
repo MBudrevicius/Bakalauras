@@ -20,7 +20,6 @@ public class DomainAgeCheckBranchTests
         return (string)method.Invoke(null, [host])!;
     }
 
-    // ParseCreationDate tests
     [Fact]
     public void ParseCreationDate_StandardFormat_ParsesCorrectly()
     {
@@ -139,7 +138,6 @@ public class DomainAgeCheckBranchTests
         Assert.Equal(2021, result!.Value.Year);
     }
 
-    // ExtractRegistrableDomain tests
     [Theory]
     [InlineData("www.example.com", "example.com")]
     [InlineData("sub.blog.example.com", "example.com")]

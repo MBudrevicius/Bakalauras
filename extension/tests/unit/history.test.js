@@ -1,4 +1,4 @@
-const { MAX_HISTORY, trimHistory, prependEntry } = require("./history-functions");
+import { MAX_HISTORY, trimHistory, prependEntry } from "./history-functions";
 
 describe("MAX_HISTORY", () => {
   test("is 200", () => expect(MAX_HISTORY).toBe(200));

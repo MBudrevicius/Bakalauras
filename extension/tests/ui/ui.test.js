@@ -1,24 +1,5 @@
-/**
- * Automated UI tests for the ClearSource browser extension.
- *
- * Uses Puppeteer to launch a real Chromium browser, serve the extension HTML
- * via a local HTTP server, mock chrome.* APIs and fetch() responses, then
- * verify DOM state after user interactions (clicks, typing, selecting).
- *
- * Test areas:
- *   - Privacy disclaimer flow
- *   - Tab switching
- *   - Security check execution & result rendering
- *   - AI detection tab (API key, model, scan)
- *   - Information credibility tab (cross-check)
- *   - Cost confirmation dialog
- *   - Error modal
- *   - Loading overlay
- *   - History page (list, filter, expand, clear)
- */
-
 const puppeteer = require("puppeteer");
-const { startServer, getChromeMockScript, getFetchMockScript, API_RESPONSES } = require("./ui-test-helpers");
+const { startServer, getChromeMockScript, getFetchMockScript } = require("./ui-test-helpers");
 
 let browser, server, baseUrl;
 
@@ -37,8 +18,6 @@ afterAll(async () => {
   if (browser) await browser.close();
   if (server) server.close();
 });
-
-/** Open a page with chrome + fetch mocks already injected. */
 async function openPage(htmlPath) {
   const page = await browser.newPage();
   await page.evaluateOnNewDocument(getChromeMockScript(baseUrl));
@@ -46,10 +25,6 @@ async function openPage(htmlPath) {
   await page.goto(`${baseUrl}/${htmlPath}`, { waitUntil: "networkidle0" });
   return page;
 }
-
-// ============================================================================
-// Popup: Privacy Disclaimer
-// ============================================================================
 
 describe("Popup – Privacy disclaimer", () => {
   test("disclaimer overlay is visible on first visit", async () => {
@@ -81,9 +56,6 @@ describe("Popup – Privacy disclaimer", () => {
     await page.click("#disclaimer-accept-btn");
     await page.waitForSelector("#disclaimer-overlay.hidden");
 
-    // The chrome.storage.local.set({ disclaimerAccepted: true }) was called.
-    // On next load with the same _store, disclaimer should be hidden.
-    // Re-inject mocks but pre-set disclaimerAccepted
     const page2 = await browser.newPage();
     await page2.evaluateOnNewDocument(getChromeMockScript(baseUrl));
     await page2.evaluateOnNewDocument(getFetchMockScript());
@@ -103,17 +75,12 @@ describe("Popup – Privacy disclaimer", () => {
   });
 });
 
-// ============================================================================
-// Popup: URL display
-// ============================================================================
-
 describe("Popup – URL display", () => {
   let page;
   beforeAll(async () => {
     page = await browser.newPage();
     await page.evaluateOnNewDocument(getChromeMockScript(baseUrl));
     await page.evaluateOnNewDocument(getFetchMockScript());
-    // Pre-accept disclaimer
     await page.evaluateOnNewDocument(() => {
       const origGet = window.chrome.storage.local.get;
       window.chrome.storage.local.get = async (keys) => {
@@ -130,10 +97,6 @@ describe("Popup – URL display", () => {
     expect(url).toBe("https://example.com/test-page");
   });
 });
-
-// ============================================================================
-// Popup: Tab switching
-// ============================================================================
 
 describe("Popup – Tab switching", () => {
   let page;
@@ -194,10 +157,6 @@ describe("Popup – Tab switching", () => {
   });
 });
 
-// ============================================================================
-// Popup: Security checks
-// ============================================================================
-
 describe("Popup – Security check execution", () => {
   let page;
   beforeAll(async () => {
@@ -223,7 +182,6 @@ describe("Popup – Security check execution", () => {
   test("clicking the button reveals score and results", async () => {
     await page.click("#run-checks-btn");
 
-    // Wait for score to appear
     await page.waitForFunction(
       () => !document.getElementById("score-section").classList.contains("hidden"),
       { timeout: 5000 }
@@ -248,10 +206,6 @@ describe("Popup – Security check execution", () => {
     expect(classes).toContain("score-green");
   });
 });
-
-// ============================================================================
-// Popup: AI Detection tab
-// ============================================================================
 
 describe("Popup – AI Detection tab", () => {
   let page;
@@ -285,7 +239,6 @@ describe("Popup – AI Detection tab", () => {
     await page.click("#api-key-toggle");
     const type = await page.$eval("#claude-api-key", (el) => el.type);
     expect(type).toBe("text");
-    // Toggle back
     await page.click("#api-key-toggle");
     const typeAgain = await page.$eval("#claude-api-key", (el) => el.type);
     expect(typeAgain).toBe("password");
@@ -316,10 +269,6 @@ describe("Popup – AI Detection tab", () => {
     expect(resultCount).toBe(2);
   });
 });
-
-// ============================================================================
-// Popup: Info / Cross-check tab
-// ============================================================================
 
 describe("Popup – Information Credibility tab", () => {
   let page;
@@ -358,14 +307,9 @@ describe("Popup – Information Credibility tab", () => {
     );
 
     const score = await page.$eval("#info-score-value", (el) => el.textContent);
-    // Overall = round(75*0.6 + 40*0.2 + 70*0.2) = round(45+8+14) = 67
     expect(Number(score)).toBeGreaterThan(0);
   });
 });
-
-// ============================================================================
-// Popup: Page scores bar
-// ============================================================================
 
 describe("Popup – Stored page scores", () => {
   let page;
@@ -399,7 +343,6 @@ describe("Popup – Stored page scores", () => {
       { timeout: 5000 }
     );
     const sec = await page.$eval("#stored-sec-score", (el) => el.textContent);
-    // Scores may load from server or fallback to N/A when API unreachable
     expect(["80", "N/A"]).toContain(sec);
   });
 
@@ -412,10 +355,6 @@ describe("Popup – Stored page scores", () => {
     expect(["45%", "N/A"]).toContain(ai);
   });
 });
-
-// ============================================================================
-// Popup: Cost confirmation dialog
-// ============================================================================
 
 describe("Popup – Cost confirmation dialog", () => {
   let page;
@@ -457,7 +396,6 @@ describe("Popup – Cost confirmation dialog", () => {
   });
 
   test("clicking Cancel closes the dialog", async () => {
-    // Attach a close listener (matching how confirmApiCost works)
     await page.evaluate(() => {
       document.getElementById("cost-cancel-btn").addEventListener("click", () => {
         document.getElementById("cost-confirm-overlay").classList.add("hidden");
@@ -469,10 +407,6 @@ describe("Popup – Cost confirmation dialog", () => {
     expect(hidden).toBe(true);
   });
 });
-
-// ============================================================================
-// Popup: Error modal
-// ============================================================================
 
 describe("Popup – Error modal", () => {
   let page;
@@ -502,7 +436,6 @@ describe("Popup – Error modal", () => {
       const closeBtn = document.getElementById("error-modal-close-btn");
       document.getElementById("error-modal-message").textContent = "Connection failed";
       overlay.classList.remove("hidden");
-      // Attach close handler (matching showErrorModal behavior)
       closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
     });
 
@@ -517,10 +450,6 @@ describe("Popup – Error modal", () => {
     expect(hidden).toBe(true);
   });
 });
-
-// ============================================================================
-// Popup: Loading overlay
-// ============================================================================
 
 describe("Popup – Loading overlay", () => {
   let page;
@@ -566,12 +495,7 @@ describe("Popup – Loading overlay", () => {
   });
 });
 
-// ============================================================================
-// History page
-// ============================================================================
-
 describe("History page – rendering and interactions", () => {
-  /** Open history page with pre-populated history data. */
   async function openHistoryWithData(entries) {
     const page = await browser.newPage();
     await page.evaluateOnNewDocument(getChromeMockScript(baseUrl));
@@ -658,11 +582,9 @@ describe("History page – rendering and interactions", () => {
     ];
     const page = await openHistoryWithData(entries);
 
-    // Details hidden initially
     const hiddenBefore = await page.$eval(".history-details", (el) => el.classList.contains("hidden"));
     expect(hiddenBefore).toBe(true);
 
-    // Click toggle area
     await page.click(".history-toggle");
     await page.evaluate(() => new Promise((r) => setTimeout(r, 50)));
 
@@ -677,14 +599,11 @@ describe("History page – rendering and interactions", () => {
     ];
     const page = await openHistoryWithData(entries);
 
-    // Override confirm to return true, and patch storage so clearHistory + re-render finds empty
     await page.evaluate(() => {
       window.confirm = () => true;
-      // After clearHistory removes "checkHistory", subsequent getHistory calls should return []
       const origRemove = window.chrome.storage.local.remove;
       window.chrome.storage.local.remove = async (key) => {
         await origRemove(key);
-        // Patch get to return empty array for future calls
         window.chrome.storage.local.get = async (keys) => {
           if (keys === "checkHistory") return { checkHistory: [] };
           return {};
@@ -716,10 +635,6 @@ describe("History page – rendering and interactions", () => {
     await page.close();
   });
 });
-
-// ============================================================================
-// Popup: API key sync between AI and Info tabs
-// ============================================================================
 
 describe("Popup – API key and model controls", () => {
   let page;

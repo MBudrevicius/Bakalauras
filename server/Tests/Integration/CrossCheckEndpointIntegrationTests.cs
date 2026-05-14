@@ -24,8 +24,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
     [Fact]
     public async Task CrossCheck_ValidUrlWithoutApiKey_ReturnsOkWithBasicData()
     {
-        // Without API key, Claude calls are skipped but the endpoint still works
-        // BraveSearch will return fake results from the handler
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/cross-check",
@@ -47,7 +45,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
     [Fact]
     public async Task CrossCheck_WithApiKey_PerformsFullPipeline()
     {
-        // Configure fake handler for full pipeline
         _factory.FakeApiHandler.AnthropicTopic = "climate change effects 2026";
         _factory.FakeApiHandler.AnthropicCredibilityScore = 78;
         _factory.FakeApiHandler.AnthropicCredibilityVerdict = "Mostly Supported";
@@ -107,7 +104,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
         });
         await _client.SendAsync(request);
 
-        // Assert - credibility stored
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var domain = new Uri(url).Host.ToLowerInvariant();
@@ -147,7 +143,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
     [Fact]
     public async Task CrossCheckAllModels_RequiresApiKey()
     {
-        // Act - no API key
         var response = await _client.PostAsJsonAsync("/api/cross-check/all-models",
             new CrossCheckRequest { Url = "https://example.com", Title = "T", Text = "C" });
 
@@ -182,7 +177,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CrossCheckResponse>();
         Assert.NotNull(result);
-        // Should have model-specific results for 3 models
         Assert.NotNull(result.ModelResults);
         Assert.Equal(3, result.ModelResults.Count);
     }
@@ -190,7 +184,6 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
     [Fact]
     public async Task CrossCheck_LowReliabilitySources_FilteredOut()
     {
-        // Set source reliability scores below threshold (< 50)
         _factory.FakeApiHandler.AnthropicSourceReliabilityScores = [30, 20];
         _factory.FakeApiHandler.AnthropicCredibilityScore = 50;
         _factory.FakeApiHandler.BraveSearchResults =
@@ -210,11 +203,9 @@ public class CrossCheckEndpointIntegrationTests : IClassFixture<IntegrationTestF
         });
         var response = await _client.SendAsync(request);
 
-        // Assert - endpoint should still succeed
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CrossCheckResponse>();
         Assert.NotNull(result);
-        // All sources are unreliable (< 50), but the pipeline still falls back
         Assert.NotEmpty(result.SourceReliability);
     }
 }

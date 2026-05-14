@@ -1,4 +1,3 @@
-// Re-export pure helper functions for testing (no DOM/chrome deps)
 
 function secScoreClass(s) {
   if (s >= 80) return "score-green";

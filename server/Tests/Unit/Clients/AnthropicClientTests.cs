@@ -26,7 +26,6 @@ public class AnthropicClientTests
         return (CredibilityResult)method.Invoke(null, [reply])!;
     }
 
-    // ParseScore tests
     [Theory]
     [InlineData("75", 75)]
     [InlineData("0", 0)]
@@ -65,7 +64,6 @@ public class AnthropicClientTests
             () => InvokeParseScore("no numbers here"));
     }
 
-    // ParseSegmentScores tests
     [Fact]
     public void ParseSegmentScores_ValidFormat_ParsesAll()
     {
@@ -126,7 +124,6 @@ public class AnthropicClientTests
         Assert.Equal(70, scores[1]);
     }
 
-    // ParseCredibilityResult tests
     [Fact]
     public void ParseCredibilityResult_ValidResponse_ParsesAll()
     {

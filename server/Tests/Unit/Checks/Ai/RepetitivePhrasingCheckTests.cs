@@ -19,7 +19,6 @@ public class RepetitivePhrasingCheckTests
     [Fact]
     public async Task RunAsync_IdenticalStarters_ReturnsNonZeroScore()
     {
-        // All sentences start with "The" — repetitive pattern
         var text = "The weather is nice today. " +
                    "The people went shopping. " +
                    "The sun was setting slowly. " +

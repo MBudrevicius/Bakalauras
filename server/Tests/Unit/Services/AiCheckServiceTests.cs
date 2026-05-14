@@ -39,7 +39,6 @@ public class AiCheckServiceTests
 
         var score = InvokeCalculateOverallScore(results);
 
-        // Claude 80 * 0.6 = 48, heuristics ~40 * 0.4 = 16 => ~64
         Assert.True(score >= 50, $"With Claude at 80, expected around 60+, got {score}");
     }
 
@@ -55,7 +54,6 @@ public class AiCheckServiceTests
 
         var score = InvokeCalculateOverallScore(results);
 
-        // Claude score 0 is skipped, so result should be heuristics only (~60)
         Assert.InRange(score, 50, 70);
     }
 
@@ -96,8 +94,6 @@ public class AiCheckServiceTests
     [Fact]
     public void CalculateOverallScore_WeightsOrder_SentenceUniformityWeighedMore()
     {
-        // SentenceUniformity has weight 1.2, HedgingLanguage 0.7
-        // With more checks to make the weight difference visible
         var resultsA = new[]
         {
             new AiCheckResult { Type = AiCheckType.SentenceUniformity, AiScore = 100 },

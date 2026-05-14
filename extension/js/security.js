@@ -10,7 +10,6 @@ export function initSecurity(getWebTab, getCurrentUrl) {
   const resultsList  = document.getElementById("results-list");
   const secStatus    = document.getElementById("security-status");
 
-  // Restore saved state
   chrome.storage.session.get("securityState", ({ securityState }) => {
     if (securityState?.url === getCurrentUrl() && securityState.data) {
       renderSecurityResults(securityState.data);
@@ -39,7 +38,6 @@ export function initSecurity(getWebTab, getCurrentUrl) {
         score: data.overallScore ?? 0,
         results: data.results.map(r => ({ title: r.title, severity: r.severity, description: r.description }))
       });
-      // Refetch stored average from server (running average now updated)
       await fetchStoredScores(currentUrl, true);
       showStatus(secStatus, "");
     } catch (err) {

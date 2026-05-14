@@ -25,7 +25,6 @@ public partial class ParagraphStructureCheck : IAiCheck
             });
         }
 
-        // Word counts per paragraph
         var wordCounts = paragraphs
             .Select(p => WordRegex().Matches(p).Count)
             .ToList();
@@ -34,7 +33,6 @@ public partial class ParagraphStructureCheck : IAiCheck
         var stdDev = Math.Sqrt(wordCounts.Sum(c => Math.Pow(c - mean, 2)) / wordCounts.Count);
         var cv = mean > 0 ? stdDev / mean : 0;
 
-        // Sentence counts per paragraph
         var sentCounts = paragraphs
             .Select(p => SentenceSplitRegex().Split(p).Count(s => s.Trim().Length > 0))
             .ToList();
@@ -43,8 +41,6 @@ public partial class ParagraphStructureCheck : IAiCheck
         var sentStdDev = Math.Sqrt(sentCounts.Sum(c => Math.Pow(c - sentMean, 2)) / sentCounts.Count);
         var sentCv = sentMean > 0 ? sentStdDev / sentMean : 0;
 
-        // AI: paragraphs tend to have similar length (low CV) and similar sentence count
-        // Human: high variability
         var wordCvScore = cv switch
         {
             < 0.15 => 85,

@@ -71,7 +71,6 @@ public class SecurityCheckServiceRunAllTests
         var (service, db) = CreateService(pass.Object, info.Object, warn.Object);
         var response = await service.RunAllAsync("https://example.com");
 
-        // Pass=100, Info=80, Warning=0 → 180/3 = 60
         Assert.Equal(60, response.OverallScore);
         db.Dispose();
     }

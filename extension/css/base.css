@@ -30,7 +30,6 @@ h1 {
   letter-spacing: 0.3px;
 }
 
-/* Header with pop-out button */
 .header-row {
   display: flex;
   align-items: center;
@@ -68,7 +67,6 @@ body.popped-out .popout-btn {
   display: none;
 }
 
-/* Current URL bar */
 .url-bar {
   font-size: 11px;
   background: rgba(255,255,255,0.03);
@@ -80,14 +78,12 @@ body.popped-out .popout-btn {
   text-align: center;
 }
 
-/* Card style (shared) */
 .card {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 10px;
 }
 
-/* Primary action button */
 .btn-primary {
   padding: 10px 14px;
   border: none;
@@ -167,13 +163,11 @@ body.popped-out .popout-btn {
   font-weight: 600;
 }
 
-/* Score colour variants */
 .score-green  { border-color: #2ecc71; color: #2ecc71; }
 .score-yellow { border-color: #f1c40f; color: #f1c40f; }
 .score-orange { border-color: #e67e22; color: #e67e22; }
 .score-red    { border-color: #e74c3c; color: #e74c3c; }
 
-/* Results list */
 .results-list {
   list-style: none;
   display: flex;
@@ -198,7 +192,6 @@ body.popped-out .popout-btn {
   background: rgba(255,255,255,0.05);
 }
 
-/* Severity icons */
 .severity-icon {
   flex-shrink: 0;
   width: 24px;
@@ -230,7 +223,6 @@ body.popped-out .popout-btn {
   line-height: 1.4;
 }
 
-/* Status / error messages */
 .status {
   font-size: 11px;
   text-align: center;
@@ -243,7 +235,6 @@ body.popped-out .popout-btn {
   color: #e74c3c;
 }
 
-/* Tabs */
 .tab-bar {
   display: flex;
   gap: 2px;
@@ -282,7 +273,6 @@ body.popped-out .popout-btn {
   display: flex;
 }
 
-/* Toggle / checkbox */
 .toggle-label {
   display: flex;
   align-items: center;
@@ -320,7 +310,6 @@ body.popped-out .popout-btn {
   font-weight: 700;
 }
 
-/* Expandable result items */
 .result-item.expandable {
   cursor: pointer;
   flex-wrap: wrap;
@@ -346,7 +335,6 @@ body.popped-out .popout-btn {
   display: block;
 }
 
-/* ═══ Loading Spinner Overlay ═══ */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -375,7 +363,6 @@ body.popped-out .popout-btn {
   to { transform: rotate(360deg); }
 }
 
-/* ═══ Error Modal ═══ */
 .error-modal-overlay {
   position: fixed;
   inset: 0;
@@ -441,7 +428,6 @@ body.popped-out .popout-btn {
   background: rgba(231, 76, 60, 0.25);
 }
 
-/* Hidden utility */
 .hidden {
   display: none !important;
 }

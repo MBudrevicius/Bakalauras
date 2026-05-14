@@ -24,7 +24,6 @@ public partial class VocabularyRichnessCheck : IAiCheck
             });
         }
 
-        // MATTR: Moving Average TTR with window of 50 words (length-independent)
         const int window = 50;
         var mattr = CalculateMattr(words, window);
 
@@ -73,8 +72,6 @@ public partial class VocabularyRichnessCheck : IAiCheck
 
     private static double CalculateMattrScore(double mattr)
     {
-        // AI text typically has MATTR in the 0.70-0.82 range
-        // Human text is usually more varied (higher or lower depending on genre)
         if (mattr >= 0.70 && mattr <= 0.82)
         {
             var distFromCenter = Math.Abs(mattr - 0.76);
@@ -96,14 +93,11 @@ public partial class VocabularyRichnessCheck : IAiCheck
 
     private static double CalculateHapaxScore(double hapaxRatio)
     {
-        // AI text tends to reuse vocabulary → lower hapax ratio
-        // Human text has more unique words → higher hapax ratio
         if (hapaxRatio >= 0.30 && hapaxRatio <= 0.55)
             return 70.0;
 
         if (hapaxRatio < 0.30)
         {
-            // Very low hapax = heavy vocab reuse = more AI-like
             return 70.0 + (0.30 - hapaxRatio) / 0.30 * 20.0; // 70 → 90
         }
 
